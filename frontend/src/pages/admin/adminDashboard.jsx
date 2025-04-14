@@ -59,7 +59,7 @@ return (
                 </h1>
                 <div className="flex items-center gap-4">
                     <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
-                        Welcome, Admin
+                        Welcome Admin
                     </span>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium ${
                         darkMode ? 'bg-purple-600' : 'bg-purple-700'
@@ -105,7 +105,9 @@ return (
                 }`}>
                     Manage Events
                 </h2>
-                <button className={`px-4 py-2 bg-purple-600 text-white rounded-lg font-medium shadow-sm hover:shadow-purple-200/20 hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group`}>
+                <button
+                onClick={() => navigate('/admin/create-event')}
+                 className={`px-4 py-2 bg-purple-600 text-white rounded-lg font-medium shadow-sm hover:shadow-purple-200/20 hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 group`}>
                     <span>Create New Event</span>
                     <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
