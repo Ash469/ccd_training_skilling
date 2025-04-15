@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function Register({ darkMode }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    studentId: '',
+    rollNumber: '',
     password: '',
     confirmPassword: ''
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,10 +23,43 @@ export default function Register({ darkMode }) {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your registration logic here
-    console.log('Registration attempt:', formData);
+    setError('');
+    
+    // Validation checks
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.post('http://localhost:5000/api/register', {
+        fullName: formData.fullName,
+        email: formData.email,
+        rollNumber: parseInt(formData.rollNumber), 
+        password: formData.password
+      });
+
+      if (response.data.success) {
+        localStorage.setItem('token', response.data.data.token);
+      
+        navigate('/user/dashboard');
+      }
+    } catch (error) {
+      setError(
+        error.response?.data?.message || 
+        'An error occurred during registration'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,23 +71,28 @@ export default function Register({ darkMode }) {
           ? 'bg-gray-800 text-white' 
           : 'bg-white text-gray-900'
       } p-8 rounded-xl shadow-lg`}>
-        {/* Logo and Title */}
         <div className="text-center space-y-6">
-          <div className="flex items-center justify-center gap-2 text-2xl font-bold">
-           <h1>Training and Skilling IIT Guwahati</h1>
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold">Create an account</h2>
-            <p className={`text-sm ${
-              darkMode ? 'text-gray-400' : 'text-gray-600'
-            }`}>
-              Enter your details to create a new account
-            </p>
+          <div className="flex flex-col items-center justify-center gap-4">
+            <img 
+              src="/logo.png" 
+              alt="IIT Guwahati Logo" 
+              className="h-20 w-auto"
+            />
+            <h1 className="text-2xl font-bold">Training and Skilling IIT Guwahati</h1>
+            <h2>Create Your Account</h2>
           </div>
         </div>
 
-        {/* Registration Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className={`p-3 rounded-lg ${
+              darkMode 
+                ? 'bg-red-900 text-red-200' 
+                : 'bg-red-100 text-red-600'
+            }`}>
+              {error}
+            </div>
+          )}
           <div className="space-y-1">
             <label className="text-sm font-medium">Full Name</label>
             <input
@@ -89,13 +128,13 @@ export default function Register({ darkMode }) {
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-medium">Student ID</label>
+            <label className="text-sm font-medium">Roll Number</label>
             <input
               type="text"
-              name="studentId"
-              value={formData.studentId}
+              name="rollNumber"
+              value={formData.rollNumber}
               onChange={handleChange}
-              placeholder="e.g., 2023CS001"
+              placeholder="e.g., 230104023"
               className={`w-full px-3 py-2 rounded-lg border ${
                 darkMode 
                   ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-400'
@@ -109,7 +148,7 @@ export default function Register({ darkMode }) {
             <label className="text-sm font-medium">Password</label>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
@@ -120,19 +159,6 @@ export default function Register({ darkMode }) {
                 }`}
                 required
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className={`absolute right-3 top-1/2 -translate-y-1/2 ${
-                  darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-700'
-                }`}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
             </div>
           </div>
 
@@ -140,7 +166,7 @@ export default function Register({ darkMode }) {
             <label className="text-sm font-medium">Confirm Password</label>
             <div className="relative">
               <input
-                type={showConfirmPassword ? "text" : "password"}
+                type="password"
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
@@ -151,31 +177,21 @@ export default function Register({ darkMode }) {
                 }`}
                 required
               />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className={`absolute right-3 top-1/2 -translate-y-1/2 ${
-                  darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-700'
-                }`}
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
             </div>
           </div>
 
           <button
             type="submit"
+            disabled={loading}
             className={`w-full py-2.5 px-4 rounded-lg ${
               darkMode
                 ? 'bg-purple-600 hover:bg-purple-700 text-white'
                 : 'bg-purple-600 hover:bg-purple-700 text-white'
-            } font-medium transition-colors`}
+            } font-medium transition-colors ${
+              loading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
-            Register
+            {loading ? 'Registering...' : 'Register'}
           </button>
         </form>
 

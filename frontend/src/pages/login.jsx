@@ -1,24 +1,47 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import axios from 'axios';
 
 export default function Login({ darkMode }) {
   const navigate = useNavigate();
   const [accountType, setAccountType] = useState('user');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Mock authentication - replace this with your actual authentication logic
-    if (email && password) {
-      if (accountType === 'user') {
-        navigate('/user/dashboard');
-      } else if (accountType === 'admin') {
-        navigate('/admin/dashboard');
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await axios.post('http://localhost:5000/api/login', {
+        email,
+        password,
+        accountType 
+      });
+
+      if (response.data.success) {
+        const { token, role } = response.data.data;
+        
+        localStorage.setItem('token', token);
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('userData', JSON.stringify(response.data.data));
+        
+        if (role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/user/dashboard');
+        }
       }
+    } catch (error) {
+      setError(
+        error.response?.data?.message || 
+        'An error occurred during login'
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -31,22 +54,25 @@ export default function Login({ darkMode }) {
           ? 'bg-gray-800 text-white' 
           : 'bg-white text-gray-900'
       } p-8 rounded-xl shadow-lg`}>
-        {/* Logo and Title */}
         <div className="text-center space-y-6">
-          <div className="flex items-center justify-center gap-2 text-2xl font-bold">
-            <h1>Training and Skilling IIT Guwahati</h1>
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold">Login to your account</h2>
-            <p className={`text-sm ${
-              darkMode ? 'text-gray-400' : 'text-gray-600'
-            }`}>
-              Enter your email and password to access your account
-            </p>
+          <div className="flex flex-col items-center justify-center gap-4">
+            <img 
+              src="/logo.png" 
+              alt="IIT Guwahati Logo" 
+              className="h-20 w-auto"
+            />
+            <h1 className="text-2xl font-bold">Training and Skilling IIT Guwahati</h1>
           </div>
         </div>
-
-        {/* Account Type Toggle */}
+        {error && (
+          <div className={`p-3 rounded-lg ${
+            darkMode 
+              ? 'bg-red-900 text-red-200' 
+              : 'bg-red-100 text-red-600'
+          }`}>
+            {error}
+          </div>
+        )}
         <div className={`grid grid-cols-2 gap-2 p-1 rounded-lg ${
           darkMode ? 'bg-gray-700' : 'bg-gray-100'
         }`}>
@@ -79,8 +105,6 @@ export default function Login({ darkMode }) {
             Admin
           </button>
         </div>
-
-        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-1">
             <label className="text-sm font-medium">Email</label>
@@ -109,7 +133,7 @@ export default function Login({ darkMode }) {
             </div>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={`w-full px-3 py-2 rounded-lg border ${
@@ -119,35 +143,23 @@ export default function Login({ darkMode }) {
                 }`}
                 required
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className={`absolute right-3 top-1/2 -translate-y-1/2 ${
-                  darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-700'
-                }`}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
             </div>
           </div>
 
           <button
             type="submit"
+            disabled={loading}
             className={`w-full py-2.5 px-4 rounded-lg ${
               darkMode
                 ? 'bg-purple-600 hover:bg-purple-700 text-white'
                 : 'bg-purple-600 hover:bg-purple-700 text-white'
-            } font-medium transition-colors`}
+            } font-medium transition-colors ${
+              loading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-
-        {/* Register Link */}
         <p className="text-center text-sm">
           Don't have an account?{' '}
           <Link to="/register" className={
