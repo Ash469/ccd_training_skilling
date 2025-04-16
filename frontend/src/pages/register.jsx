@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-// import axios from 'axios';
+import axios from 'axios';
 
 export default function Register({ darkMode }) {
   const navigate = useNavigate();
@@ -38,30 +38,30 @@ export default function Register({ darkMode }) {
       return;
     }
 
-    navigate('/');
+    // navigate('/');
 
-    // try {
-    //   setLoading(true);
-    //   const response = await axios.post('http://localhost:5000/api/register', {
-    //     fullName: formData.fullName,
-    //     email: formData.email,
-    //     rollNumber: parseInt(formData.rollNumber), 
-    //     password: formData.password
-    //   });
+    try {
+      setLoading(true);
+      const response = await axios.post('http://localhost:5000/api/register', {
+        fullName: formData.fullName,
+        email: formData.email,
+        rollNumber: parseInt(formData.rollNumber), 
+        password: formData.password
+      });
 
-    //   if (response.data.success) {
-    //     localStorage.setItem('token', response.data.data.token);
+      if (response.data.success) {
+        localStorage.setItem('token', response.data.data.token);
       
-    //     navigate('/user/dashboard');
-    //   }
-    // } catch (error) {
-    //   setError(
-    //     error.response?.data?.message || 
-    //     'An error occurred during registration'
-    //   );
-    // } finally {
-    //   setLoading(false);
-    // }
+        navigate('/user/dashboard');
+      }
+    } catch (error) {
+      setError(
+        error.response?.data?.message || 
+        'An error occurred during registration'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

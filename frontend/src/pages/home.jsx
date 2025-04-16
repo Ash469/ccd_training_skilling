@@ -29,7 +29,7 @@ export default function Home({ darkMode, toggleDarkMode }) {
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link to="/events">
+                  {/* <Link to="/events">
                     <button className={`flex items-center px-6 py-3 rounded-lg ${
                       darkMode 
                         ? 'bg-purple-500 hover:bg-purple-600' 
@@ -38,7 +38,7 @@ export default function Home({ darkMode, toggleDarkMode }) {
                       <CalendarClock className="h-5 w-5 mr-2" />
                       Browse Events
                     </button>
-                  </Link>
+                  </Link> */}
                   <Link to="/register">
                     <button className={`flex items-center px-6 py-3 rounded-lg border-2 ${
                       darkMode 

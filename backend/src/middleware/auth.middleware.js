@@ -1,48 +1,46 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/user.model');
-const Admin = require('../models/admin.model');
 
 const protect = async (req, res, next) => {
-  let token;
-
-  if (req.headers.authorization?.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: 'Not authorized to access this route'
-    });
-  }
-
   try {
+    let token;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized, no token'
+      });
+    }
+
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    if (decoded.role === 'admin') {
-      req.user = await Admin.findById(decoded.id).select('-password');
-    } else {
-      req.user = await User.findById(decoded.id).select('-password');
-    }
+    // Add decoded data to request
+    req.user = decoded;
+    req.admin_id = decoded.id;
     
-    req.userRole = decoded.role;
     next();
   } catch (error) {
-    return res.status(401).json({
+    console.error('Auth Error:', error);
+    res.status(401).json({
       success: false,
-      message: 'Not authorized to access this route'
+      message: 'Not authorized, token failed'
     });
   }
 };
 
-const adminOnly = (req, res, next) => {
-  if (req.userRole !== 'admin') {
-    return res.status(403).json({
+const admin = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403).json({
       success: false,
-      message: 'Access restricted to admin users only'
+      message: 'Not authorized as admin'
     });
   }
-  next();
 };
 
-module.exports = { protect, adminOnly };
+module.exports = { protect, admin };

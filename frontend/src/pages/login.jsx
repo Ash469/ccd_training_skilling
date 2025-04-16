@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-// import axios from 'axios';
+import axios from 'axios';
 
 export default function Login({ darkMode }) {
   const navigate = useNavigate();
@@ -15,41 +15,41 @@ export default function Login({ darkMode }) {
     setError('');
     setLoading(true);
 
-    if (accountType === 'admin') {
-      navigate('/admin/dashboard');
-    } else {
-      navigate('/user/dashboard');
-    }
-    return;
-
-    // try {
-    //   const response = await axios.post('http://localhost:5000/api/login', {
-    //     email,
-    //     password,
-    //     accountType 
-    //   });
-
-    //   if (response.data.success) {
-    //     const { token, role } = response.data.data;
-        
-    //     localStorage.setItem('token', token);
-    //     localStorage.setItem('userRole', role);
-    //     localStorage.setItem('userData', JSON.stringify(response.data.data));
-        
-    //     if (role === 'admin') {
-    //       navigate('/admin/dashboard');
-    //     } else {
-    //       navigate('/user/dashboard');
-    //     }
-    //   }
-    // } catch (error) {
-    //   setError(
-    //     error.response?.data?.message || 
-    //     'An error occurred during login'
-    //   );
-    // } finally {
-    //   setLoading(false);
+    // if (accountType === 'admin') {
+    //   navigate('/admin/dashboard');
+    // } else {
+    //   navigate('/user/dashboard');
     // }
+    // return;
+
+    try {
+      const response = await axios.post('http://localhost:5000/api/login', {
+        email,
+        password,
+        accountType 
+      });
+
+      if (response.data.success) {
+        const { token, role } = response.data.data;
+        
+        localStorage.setItem('token', token);
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('userData', JSON.stringify(response.data.data));
+        
+        if (role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/user/dashboard');
+        }
+      }
+    } catch (error) {
+      setError(
+        error.response?.data?.message || 
+        'An error occurred during login'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

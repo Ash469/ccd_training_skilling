@@ -7,14 +7,57 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [sendEmail, setSendEmail] = useState(true);
 
+  const API_BASE_URL = 'http://localhost:5000';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate event creation
-    setTimeout(() => {
+    
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+  
+      const formData = {
+        eventName: e.target.elements.eventName.value,
+        speaker: e.target.elements.speaker.value,
+        description: e.target.elements.description.value,
+        date: e.target.elements.date.value,
+        time: e.target.elements.time.value,
+        venue: e.target.elements.venue.value,
+        maxSeats: parseInt(e.target.elements.maxSeats.value),
+        sendEmail: sendEmail
+      };
+  
+      const response = await fetch(`${API_BASE_URL}/api/events/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.message || 'Error creating event');
+      }
+  
+      // Show simple alert
+      alert('Event created successfully!');
+      
+      // Navigate to admin dashboard
+      navigate('/admin/dashboard');
+  
+    } catch (error) {
+      // Show error in alert
+      alert('Error: ' + error.message);
+      console.error('Error:', error);
+    } finally {
       setIsLoading(false);
-      navigate('/admin');
-    }, 1000);
+    }
   };
 
   return (
@@ -94,6 +137,7 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 </label>
                 <input
                   type="text"
+                  name="eventName"
                   required
                   className={`w-full p-2 rounded-lg border ${
                     darkMode 
@@ -111,6 +155,7 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 </label>
                 <input
                   type="text"
+                  name="speaker"
                   required
                   className={`w-full p-2 rounded-lg border ${
                     darkMode 
@@ -128,6 +173,7 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 Description
               </label>
               <textarea
+                name="description"
                 required
                 rows="4"
                 className={`w-full p-2 rounded-lg border ${
@@ -158,6 +204,7 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 </label>
                 <input
                   type="date"
+                  name="date"
                   required
                   className={`w-full p-2 rounded-lg border ${
                     darkMode 
@@ -174,6 +221,7 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 </label>
                 <input
                   type="time"
+                  name="time"
                   required
                   className={`w-full p-2 rounded-lg border ${
                     darkMode 
@@ -190,6 +238,7 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 </label>
                 <input
                   type="text"
+                  name="venue"
                   required
                   className={`w-full p-2 rounded-lg border ${
                     darkMode 
@@ -207,6 +256,7 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 </label>
                 <input
                   type="number"
+                  name="maxSeats"
                   min="1"
                   required
                   className={`w-full p-2 rounded-lg border ${
