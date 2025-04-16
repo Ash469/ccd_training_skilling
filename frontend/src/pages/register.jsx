@@ -14,6 +14,7 @@ export default function Register({ darkMode }) {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,7 +43,7 @@ export default function Register({ darkMode }) {
 
     try {
       setLoading(true);
-      const response = await axios.post('http://localhost:5000/api/register', {
+      const response = await axios.post(`${API_BASE_URL}/api/register`, {
         fullName: formData.fullName,
         email: formData.email,
         rollNumber: parseInt(formData.rollNumber), 

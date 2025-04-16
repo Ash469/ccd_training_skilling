@@ -7,7 +7,7 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [sendEmail, setSendEmail] = useState(true);
 
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
   const handleSubmit = async (e) => {
     e.preventDefault();

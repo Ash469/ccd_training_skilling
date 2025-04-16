@@ -13,7 +13,7 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [newStatus, setNewStatus] = useState('');
 
-    const API_BASE_URL = 'http://localhost:5000';
+    const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -47,7 +47,7 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
         };
 
         fetchEvents();
-    }, []);
+    }, [API_BASE_URL]);
 
     const handleEdit = (event) => {
         setSelectedEvent(event);

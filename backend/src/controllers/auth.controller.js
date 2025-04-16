@@ -1,5 +1,6 @@
 const User = require('../models/user.model');
 const Admin = require('../models/admin.model');
+const Event = require('../models/event.model');
 const jwt = require('jsonwebtoken');
 
 const register = async (req, res) => {
@@ -113,7 +114,58 @@ const login = async (req, res) => {
   }
 };
 
+const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .select('-password')
+      .populate('events');
+
+    const stats = await Event.aggregate([
+      {
+        $match: {
+          _id: { $in: user.events }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          registeredEvents: { $sum: 1 },
+          upcomingEvents: {
+            $sum: {
+              $cond: [{ $gt: ['$date', new Date()] }, 1, 0]
+            }
+          },
+          completedEvents: {
+            $sum: {
+              $cond: [{ $lt: ['$date', new Date()] }, 1, 0]
+            }
+          }
+        }
+      }
+    ]);
+
+    const userProfile = {
+      fullName: user.fullName,
+      email: user.email,
+      studentId: user.rollNumber,
+      joinedDate: user.createdAt,
+      registeredEvents: stats[0]?.registeredEvents || 0,
+      upcomingEvents: stats[0]?.upcomingEvents || 0,
+      completedEvents: stats[0]?.completedEvents || 0
+    };
+
+    res.json(userProfile);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user profile',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   register,
-  login
+  login,
+  getProfile
 };

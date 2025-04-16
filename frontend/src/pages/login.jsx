@@ -9,6 +9,7 @@ export default function Login({ darkMode }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +24,7 @@ export default function Login({ darkMode }) {
     // return;
 
     try {
-      const response = await axios.post('http://localhost:5000/api/login', {
+      const response = await axios.post(`${API_BASE_URL}/api/login`, {
         email,
         password,
         accountType 

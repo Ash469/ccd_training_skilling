@@ -25,6 +25,9 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // Routes
+app.get('/', (req, res) => {
+  res.send('Training  And Skilling Portal API Server is running');
+});
 app.use('/api', authRoutes);
 app.use('/api/events', eventRoutes); // Add this line
 

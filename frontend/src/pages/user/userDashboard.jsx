@@ -10,9 +10,9 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
     const [error, setError] = useState(null);
     const [notification, setNotification] = useState({ show: false, message: '', type: '' });
     const [, setUserRegisteredEventIds] = useState([]);
+    const [user, setUser] = useState(null);
 
-    const API_BASE_URL = 'http://localhost:5000';
-
+    const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -44,7 +44,27 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
         };
 
         fetchData();
-    }, []);
+    }, [API_BASE_URL]);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const config = {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                };
+                const response = await axios.get(`${API_BASE_URL}/api/users/profile`, config);
+                setUser(response.data);
+            } catch (err) {
+                console.error('Failed to fetch user data:', err);
+                // Handle error appropriately
+            }
+        };
+
+        fetchUserData();
+    }, [API_BASE_URL]);
 
     const handleNavigation = (path) => {
         navigate(path);
@@ -148,7 +168,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                     </h1>
                     <div className="flex items-center gap-4">
                         <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
-                            Welcome John Doe
+                            Welcome {user?.fullName || 'User'}
                         </span>
                         <button
                             onClick={() => handleNavigation('/user/profile')}
@@ -157,7 +177,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                             }`}
                             aria-label="View Profile"
                         >
-                            J
+                            {user?.fullName ? user.fullName[0].toUpperCase() : 'U'}
                         </button>
                         <button
                             onClick={toggleDarkMode}
@@ -175,7 +195,10 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                             )}
                         </button>
                         <button
-                            onClick={() => handleNavigation('/')}
+                            onClick={() => {
+                                localStorage.removeItem('token');
+                                handleNavigation('/');
+                            }}
                             className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                                 darkMode 
                                     ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' 

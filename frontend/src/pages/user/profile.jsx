@@ -1,20 +1,63 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarCheck, Mail, IdCard, UserCircle, Sun, Moon } from 'lucide-react';
+import axios from 'axios';
 
 export default function Profile({ darkMode, toggleDarkMode }) {
   const navigate = useNavigate();
+  const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock user data - replace with actual user data from your auth system
-  const userProfile = {
-    fullName: "John Doe",
-    email: "john.doe@iitg.ac.in",
-    studentId: "2023CS001",
-    registeredEvents: 3,
-    upcomingEvents: 2,
-    completedEvents: 1,
-    joinedDate: "2024-01-15"
-  };
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${API_BASE_URL}/api/users/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setUserProfile(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch user profile');
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [API_BASE_URL]);
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${
+        darkMode ? 'bg-gray-900' : 'bg-gray-50'
+      }`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${
+        darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'
+      }`}>
+        <div className="text-center">
+          <p className="text-red-500 mb-2">Error: {error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="text-purple-600 hover:text-purple-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen transition-colors duration-200 ${

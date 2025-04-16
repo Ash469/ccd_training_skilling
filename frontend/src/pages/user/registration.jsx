@@ -9,28 +9,28 @@ export default function Registration({ darkMode, toggleDarkMode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cancelStatus, setCancelStatus] = useState({ show: false, message: '', type: '' });
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
   useEffect(() => {
+    const fetchUserEvents = async () => {
+      try {
+        const token = localStorage.getItem('token'); 
+        const response = await axios.get(`${API_BASE_URL}/api/events/user/registered`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setRegisteredEvents(response.data);
+        setLoading(false);
+      // eslint-disable-next-line no-unused-vars
+      } catch (error) {
+        setError('Failed to fetch registered events');
+        setLoading(false);
+      }
+    };
+
     fetchUserEvents();
   }, []);
-
-  const fetchUserEvents = async () => {
-    try {
-      const token = localStorage.getItem('token'); // Assuming you store the token in localStorage
-      const response = await axios.get(`${API_BASE_URL}/api/events/user/registered`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      setRegisteredEvents(response.data);
-      setLoading(false);
-    // eslint-disable-next-line no-unused-vars
-    } catch (error) {
-      setError('Failed to fetch registered events');
-      setLoading(false);
-    }
-  };
 
   const handleCancelRegistration = async (eventId) => {
     try {
@@ -41,10 +41,8 @@ export default function Registration({ darkMode, toggleDarkMode }) {
         }
       });
       
-      // Remove the event from the list immediately
       setRegisteredEvents(prev => prev.filter(event => event._id !== eventId));
       
-      // Show success message
       setCancelStatus({
         show: true,
         message: 'Successfully cancelled registration',
@@ -58,7 +56,6 @@ export default function Registration({ darkMode, toggleDarkMode }) {
       });
     }
 
-    // Hide the status message after 3 seconds
     setTimeout(() => {
       setCancelStatus({ show: false, message: '', type: '' });
     }, 3000);
