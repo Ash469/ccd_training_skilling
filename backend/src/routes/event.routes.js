@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const { 
     createEvent, 
     getEvents, 
@@ -7,11 +8,20 @@ const {
     deleteEvent, 
     getUpcomingEvents, 
     registerForEvent,
-    cancelEventRegistration  // Add this new controller function import
+    cancelEventRegistration
 } = require('../controllers/event.controller');
 const { protect, admin } = require('../middleware/auth.middleware');
-const User = require('../models/user.model'); // Add this at the top
-const Event = require('../models/event.model');  // Add this at the top with other imports
+const User = require('../models/user.model');
+const Event = require('../models/event.model');
+
+// Add a debug endpoint to test connection - keep this BEFORE any parameterized routes
+router.get('/debug', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Backend API is working',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Protected route - only authenticated admins can create events
 router.post('/create', protect, admin, createEvent);
@@ -54,7 +64,7 @@ router.delete('/:id/register', protect, async (req, res) => {
         // Find the event and update its registeredUsers array
         const event = await Event.findByIdAndUpdate(eventId, {
             $pull: { registeredRollNumbers: user.rollNumber.toString() },
-            $inc: { registeredUsers: -1 }  // Decrement registered users count
+            $inc: { registeredUsers: -1 }
         }, { new: true });
 
         if (!event) {
@@ -73,10 +83,60 @@ router.delete('/:id/register', protect, async (req, res) => {
     }
 });
 
-// Update event status - protected route for admins
+router.get('/:id/registrations', protect, admin, async (req, res) => {
+    try {
+        // console.log('Registration endpoint called with ID:', req.params.id);
+        const eventId = req.params.id;
+        
+        // Validate MongoDB ObjectId format
+        if (!mongoose.isValidObjectId(eventId)) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Invalid event ID format' 
+            });
+        }
+
+        const event = await Event.findById(eventId);
+        // console.log('Event found:', event ? 'Yes' : 'No');
+        
+        if (!event) {
+            return res.status(404).json({ 
+                success: false,
+                message: 'Event not found' 
+            });
+        }
+
+       
+        // console.log('Registered roll numbers:', event.registeredRollNumbers || []);
+
+        let registeredUsers = [];
+        if (event.registeredRollNumbers && event.registeredRollNumbers.length > 0) {
+            registeredUsers = await User.find({
+                rollNumber: { $in: event.registeredRollNumbers }
+            }).select('fullName rollNumber email');
+            
+            // console.log('Found users:', registeredUsers.length);
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: registeredUsers,
+            eventName: event.eventName
+        });
+
+    } catch (error) {
+        console.error('Error fetching registrations:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while fetching registrations',
+            error: error.message
+        });
+    }
+});
+
+
 router.put('/:id/status', protect, admin, updateEventStatus);
 
-// Delete event - protected route for admins
 router.delete('/:id', protect, admin, deleteEvent);
 
 module.exports = router;
