@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarCheck, Mail, IdCard, UserCircle, Sun, Moon } from 'lucide-react';
+import { CalendarCheck, Mail, IdCard, UserCircle, Sun, Moon, Menu, X } from 'lucide-react';
 import axios from 'axios';
 
 export default function Profile({ darkMode, toggleDarkMode }) {
@@ -8,6 +8,7 @@ export default function Profile({ darkMode, toggleDarkMode }) {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
@@ -73,7 +74,21 @@ export default function Profile({ darkMode, toggleDarkMode }) {
           }`}>
             User Profile
           </h1>
-          <div className="flex items-center gap-4">
+          
+          {/* Mobile menu button */}
+          <button 
+            className="md:hidden p-2 rounded-md"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? (
+              <X className={darkMode ? 'text-white' : 'text-gray-800'} />
+            ) : (
+              <Menu className={darkMode ? 'text-white' : 'text-gray-800'} />
+            )}
+          </button>
+          
+          {/* Desktop menu */}
+          <div className="hidden md:flex items-center gap-4">
             <button
               onClick={() => navigate('/user/dashboard')}
               className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
@@ -111,6 +126,54 @@ export default function Profile({ darkMode, toggleDarkMode }) {
             </button>
           </div>
         </div>
+        
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className={`md:hidden mt-4 py-3 px-2 rounded-lg shadow-lg ${
+            darkMode ? 'bg-gray-700' : 'bg-white'
+          }`}>
+            <div className="flex flex-col space-y-3">
+              <button
+                onClick={() => navigate('/user/dashboard')}
+                className={`w-full py-2 text-center rounded ${
+                  darkMode ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-800'
+                }`}
+              >
+                Back to Dashboard
+              </button>
+              
+              <button
+                onClick={toggleDarkMode}
+                className={`w-full py-2 text-center rounded flex items-center justify-center space-x-2 ${
+                  darkMode ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-800'
+                }`}
+              >
+                {darkMode ? (
+                  <>
+                    <Sun className="h-4 w-4" />
+                    <span>Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="h-4 w-4" />
+                    <span>Dark Mode</span>
+                  </>
+                )}
+              </button>
+              
+              <button
+                onClick={() => navigate('/')}
+                className={`w-full py-2 text-center rounded-lg font-medium ${
+                  darkMode 
+                    ? 'bg-red-500/20 text-red-400' 
+                    : 'bg-red-50 text-red-600'
+                }`}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Existing Profile Content */}
