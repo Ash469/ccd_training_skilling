@@ -2,6 +2,7 @@ const User = require('../models/user.model');
 const Admin = require('../models/admin.model');
 const Event = require('../models/event.model');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 
 const register = async (req, res) => {
   try {
@@ -164,8 +165,119 @@ const getProfile = async (req, res) => {
   }
 };
 
+const microsoftAuth = async (req, res) => {
+  try {
+    const { accessToken, accountType } = req.body;
+    
+    if (!accessToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Access token is required'
+      });
+    }
+    
+    // Get user info from Microsoft Graph API
+    const graphResponse = await axios.get('https://graph.microsoft.com/v1.0/me', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+    
+    const microsoftUser = graphResponse.data;
+    
+    // Check if user should be admin or regular user
+    let user;
+    let role = accountType || 'user';
+    
+    if (role === 'admin') {
+      // Check if admin exists with this email
+      user = await Admin.findOne({ email: microsoftUser.mail || microsoftUser.userPrincipalName });
+      
+      if (!user) {
+        // Admin does not exist, check if there's an admin allowlist or create new admin
+        const adminEmails = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(',') : [];
+        
+        if (adminEmails.includes(microsoftUser.mail || microsoftUser.userPrincipalName)) {
+          // Create admin
+          user = await Admin.create({
+            email: microsoftUser.mail || microsoftUser.userPrincipalName,
+            password: `microsoft-${Date.now()}` // Generate random password (won't be used)
+          });
+        } else {
+          return res.status(403).json({
+            success: false,
+            message: 'This email is not authorized for admin access'
+          });
+        }
+      }
+    } else {
+      // Handle regular user
+      user = await User.findOne({ email: microsoftUser.mail || microsoftUser.userPrincipalName });
+      
+      if (!user) {
+        // Extract email and try to parse rollNumber from email (if institutional email)
+        const email = microsoftUser.mail || microsoftUser.userPrincipalName;
+        let rollNumber;
+        
+        // Try to extract roll number from email if it's in a format like 230104023@iitg.ac.in
+        const rollNumberMatch = email.match(/^(\d{9})@/);
+        if (rollNumberMatch) {
+          rollNumber = parseInt(rollNumberMatch[1]);
+        } else {
+          // Generate a random roll number as fallback (real apps would handle this differently)
+          rollNumber = Math.floor(Math.random() * 900000000) + 100000000;
+        }
+        
+        // Create new user with Microsoft data
+        user = await User.create({
+          fullName: microsoftUser.displayName,
+          email: email,
+          rollNumber: rollNumber,
+          microsoftId: microsoftUser.id,
+          password: `microsoft-${Date.now()}` // Generate random password (won't be used)
+        });
+      } else {
+        // Update existing user with latest Microsoft info
+        user.fullName = microsoftUser.displayName;
+        user.microsoftId = microsoftUser.id;
+        await user.save();
+      }
+    }
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        id: user._id,
+        role: role
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+    
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        ...userResponse,
+        role,
+        token
+      }
+    });
+  } catch (error) {
+    console.error('Microsoft auth error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error during Microsoft authentication'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
-  getProfile
+  getProfile,
+  microsoftAuth
 };

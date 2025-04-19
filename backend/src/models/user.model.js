@@ -22,6 +22,11 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Password is required'],
     minlength: 6
   },
+  microsoftId: {
+    type: String,
+    sparse: true,
+    unique: true
+  },
   events: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Event'

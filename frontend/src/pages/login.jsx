@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { PublicClientApplication } from '@azure/msal-browser';
 
 export default function Login({ darkMode }) {
   const navigate = useNavigate();
@@ -9,8 +10,95 @@ export default function Login({ darkMode }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [msalInstance, setMsalInstance] = useState(null);
+  const [msalInitialized, setMsalInitialized] = useState(false);
   
   const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
+  useEffect(() => {
+    // Initialize MSAL instance
+    const initializeMsal = async () => {
+      try {
+        const msalConfig = {
+          auth: {
+            clientId: import.meta.env.VITE_MICROSOFT_CLIENT_ID,
+            authority: `https://login.microsoftonline.com/${import.meta.env.VITE_MICROSOFT_TENANT_ID}`,
+            redirectUri: import.meta.env.VITE_REDIRECT_URI || window.location.origin,
+          },
+          cache: {
+            cacheLocation: 'sessionStorage',
+            storeAuthStateInCookie: false,
+          }
+        };
+
+        const msalInstance = new PublicClientApplication(msalConfig);
+        await msalInstance.initialize();
+        
+        setMsalInstance(msalInstance);
+        setMsalInitialized(true);
+        console.log('MSAL initialized successfully');
+      } catch (error) {
+        console.error('Error initializing MSAL:', error);
+        setError('Failed to initialize Microsoft authentication');
+      }
+    };
+
+    initializeMsal();
+  }, []);
+
+  const handleMicrosoftLogin = async () => {
+    if (!msalInitialized || !msalInstance) {
+      setError('Microsoft authentication is not ready yet. Please try again in a moment.');
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      // Login with popup and request user info
+      const loginRequest = {
+        scopes: ['user.read', 'profile', 'email', 'openid']
+      };
+
+      const response = await msalInstance.loginPopup(loginRequest);
+      
+      if (response && response.account) {
+        // Get access token
+        const tokenResponse = await msalInstance.acquireTokenSilent({
+          scopes: ['user.read'],
+          account: response.account
+        });
+        
+        // Send token to backend
+        const backendResponse = await axios.post(`${API_BASE_URL}/api/microsoft-auth`, {
+          accessToken: tokenResponse.accessToken,
+          accountType
+        });
+        
+        if (backendResponse.data.success) {
+          const { token, role } = backendResponse.data.data;
+          
+          localStorage.setItem('token', token);
+          localStorage.setItem('userRole', role);
+          localStorage.setItem('userData', JSON.stringify(backendResponse.data.data));
+          
+          if (role === 'admin') {
+            navigate('/admin/dashboard');
+          } else {
+            navigate('/user/dashboard');
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Microsoft login error:', error);
+      setError(
+        error.response?.data?.message || 
+        'An error occurred during Microsoft login'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -164,6 +252,32 @@ export default function Login({ darkMode }) {
             }`}
           >
             {loading ? 'Logging in...' : 'Login'}
+          </button>
+          
+          <div className="relative flex items-center justify-center">
+            <hr className={`w-full border-t ${darkMode ? 'border-gray-600' : 'border-gray-300'}`} />
+            <span className={`px-2 text-xs font-medium ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-500'} absolute`}
+                 style={{backgroundColor: darkMode ? 'hsla(240, 10%, 16%, 0.8)' : 'hsla(0, 0%, 100%, 0.85)'}}>
+              OR
+            </span>
+          </div>
+          
+          <button
+            type="button"
+            onClick={handleMicrosoftLogin}
+            disabled={loading || !msalInitialized}
+            className={`w-full flex items-center justify-center py-2.5 px-4 rounded-lg ${
+              darkMode
+                ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                : 'bg-white hover:bg-gray-100 text-gray-800 border border-gray-300'
+            } font-medium transition-colors ${
+              (loading || !msalInitialized) ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="mr-2" viewBox="0 0 16 16">
+              <path d="M7.462 0H0v7.19h7.462V0zM16 0H8.538v7.19H16V0zM7.462 8.211H0V16h7.462V8.211zm8.538 0H8.538V16H16V8.211z"/>
+            </svg>
+            Login with Microsoft
           </button>
         </form>
         <p className="text-center text-sm">
