@@ -1,6 +1,6 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
-const User = require('../models/user.model'); // Ensure path is correct
+const User = require('../models/user.model'); 
 
 const router = express.Router();
 
@@ -14,10 +14,15 @@ router.post('/send-email', async (req, res) => {
       console.log(`Found ${users.length} users`);
   
       const transporter = nodemailer.createTransport({
-        service: 'outlook',
+        host: 'smtp-mail.outlook.com',
+        port: 587,
+        secure: false, 
         auth: {
           user: process.env.OUTLOOK_EMAIL,
           pass: process.env.OUTLOOK_PASSWORD
+        },
+        tls: {
+          ciphers: 'SSLv3'
         }
       });
   
