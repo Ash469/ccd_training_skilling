@@ -118,7 +118,7 @@ npm run dev
 ## 🙏 Acknowledgments
 
 - IIT Guwahati Technical Team
-- Career Development Cell
+- Centre For Career Development
 - All contributors who helped in making this project better
 
 ---

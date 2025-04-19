@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarDays, MapPin, User, Clock, Users, Moon, Sun } from 'lucide-react';
+import { CalendarDays, MapPin, User, Clock, Users, Moon, Sun, Menu, X } from 'lucide-react';
 import axios from 'axios';
 
 export default function UserDashboard({ darkMode, toggleDarkMode }) {
@@ -11,6 +11,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
     const [notification, setNotification] = useState({ show: false, message: '', type: '' });
     const [, setUserRegisteredEventIds] = useState([]);
     const [user, setUser] = useState(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
     useEffect(() => {
@@ -22,22 +23,55 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                         Authorization: `Bearer ${token}`
                     }
                 };
-                const [eventsResponse, userResponse] = await Promise.all([
-                    axios.get(`${API_BASE_URL}/api/events/upcoming`),
-                    axios.get(`${API_BASE_URL}/api/events/user/registered`, config)
-                ]);
-
-                const registeredEventIds = userResponse.data.map(event => event._id);
+                
+                // Get user profile data first to access registered event IDs
+                const userProfileResponse = await axios.get(`${API_BASE_URL}/api/users/profile`, config);
+                setUser(userProfileResponse.data);
+                const registeredEventsResponse = await axios.get(`${API_BASE_URL}/api/events/user/registered`, config);
+                // console.log('Registered events response:', registeredEventsResponse.data);
+                
+                // Extract event IDs from the registered events
+                const registeredEventIds = registeredEventsResponse.data.map(event => event._id);
+                // console.log('Extracted registered event IDs:', registeredEventIds);
+                
                 setUserRegisteredEventIds(registeredEventIds);
-
-                const eventsWithRegistration = eventsResponse.data.data.map(event => ({
-                    ...event,
-                    isRegistered: registeredEventIds.includes(event._id)  // Fix: Use _id instead of id
-                }));
+                
+                // Get upcoming events
+                const eventsResponse = await axios.get(`${API_BASE_URL}/api/events/upcoming`);
+                // console.log('Upcoming events:', eventsResponse.data.data);
+                
+                // Map the events and check if they're in user's registered events
+                const eventsWithRegistration = eventsResponse.data.data.map(event => {
+                    const eventId = event._id || event.id;
+                    
+                    const isRegistered = registeredEventIds.some(registeredId => {
+                        // Convert to string if needed for comparison
+                        const normalizedRegisteredId = typeof registeredId === 'object' 
+                            ? (registeredId.$oid || registeredId._id) 
+                            : String(registeredId);
+                        
+                        const normalizedEventId = String(eventId);
+                        const matched = normalizedRegisteredId === normalizedEventId;
+                        
+                        if (matched) {
+                            console.log(`Match found! Event ${eventId} is registered`);
+                        }
+                        
+                        return matched;
+                    });
+                    
+                    console.log(`Event ${eventId} (${event.name}) registration status:`, isRegistered);
+                    
+                    return {
+                        ...event,
+                        isRegistered
+                    };
+                });
 
                 setEvents(eventsWithRegistration);
                 setLoading(false);
             } catch (err) {
+                console.error('Error fetching data:', err);
                 setError(err.response?.data?.message || 'Failed to fetch events');
                 setLoading(false);
             }
@@ -46,35 +80,17 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
         fetchData();
     }, [API_BASE_URL]);
 
-    useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                const config = {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                };
-                const response = await axios.get(`${API_BASE_URL}/api/users/profile`, config);
-                setUser(response.data);
-            } catch (err) {
-                console.error('Failed to fetch user data:', err);
-                // Handle error appropriately
-            }
-        };
-
-        fetchUserData();
-    }, [API_BASE_URL]);
-
     const handleNavigation = (path) => {
         navigate(path);
     };
 
     const handleRegister = async (eventId) => {
         try {
-            // Immediately update UI state
+            const targetEvent = events.find(event => event.id === eventId || event._id === eventId);
+            const targetEventId = targetEvent?.id || targetEvent?._id || eventId;
+            
             setEvents(events.map(event => 
-                event.id === eventId
+                event.id === targetEventId || event._id === targetEventId
                     ? { 
                         ...event, 
                         seatsAvailable: event.seatsAvailable - 1,
@@ -91,20 +107,24 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
             };
 
             await axios.post(
-                `${API_BASE_URL}/api/events/${eventId}/register`,
+                `${API_BASE_URL}/api/events/${targetEventId}/register`,
                 {},
                 config
             );
-
+            setUserRegisteredEventIds(prev => [...prev, targetEventId]);
+            
             setNotification({
                 show: true,
                 message: 'Successfully registered for the event!',
                 type: 'success'
             });
         } catch (err) {
-            // Revert UI state if registration fails
+            console.error('Registration error:', err);
+            const targetEvent = events.find(event => event.id === eventId || event._id === eventId);
+            const targetEventId = targetEvent?.id || targetEvent?._id || eventId;
+            
             setEvents(events.map(event => 
-                event.id === eventId
+                event.id === targetEventId || event._id === targetEventId
                     ? { 
                         ...event, 
                         seatsAvailable: event.seatsAvailable + 1,
@@ -166,7 +186,19 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                     }`}>
                         Training and Skilling
                     </h1>
-                    <div className="flex items-center gap-4">
+                    
+                    <button 
+                        className="md:hidden p-2 rounded-md"
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    >
+                        {mobileMenuOpen ? (
+                            <X className={darkMode ? 'text-white' : 'text-gray-800'} />
+                        ) : (
+                            <Menu className={darkMode ? 'text-white' : 'text-gray-800'} />
+                        )}
+                    </button>
+                    
+                    <div className="hidden md:flex items-center gap-4">
                         <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
                             Welcome {user?.fullName || 'User'}
                         </span>
@@ -209,6 +241,72 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                         </button>
                     </div>
                 </div>
+                
+                {mobileMenuOpen && (
+                    <div className={`md:hidden mt-4 py-3 px-2 rounded-lg shadow-lg ${
+                        darkMode ? 'bg-gray-700' : 'bg-white'
+                    }`}>
+                        <div className="flex flex-col space-y-3">
+                            <div className="flex items-center justify-between px-2">
+                                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
+                                    Welcome {user?.fullName || 'User'}
+                                </span>
+                                <button
+                                    onClick={() => handleNavigation('/user/profile')}
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium ${
+                                        darkMode ? 'bg-purple-600' : 'bg-purple-700'
+                                    }`}
+                                >
+                                    {user?.fullName ? user.fullName[0].toUpperCase() : 'U'}
+                                </button>
+                            </div>
+                            
+                            <div className="border-t border-b py-2 my-1 grid grid-cols-2 gap-2 px-2">
+                                <button
+                                    onClick={() => handleNavigation('/user/registration')}
+                                    className={`w-full py-2 text-center rounded ${
+                                        darkMode ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-800'
+                                    }`}
+                                >
+                                    My Registrations
+                                </button>
+                                
+                                <button
+                                    onClick={toggleDarkMode}
+                                    className={`w-full py-2 text-center rounded flex items-center justify-center space-x-2 ${
+                                        darkMode ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-800'
+                                    }`}
+                                >
+                                    {darkMode ? (
+                                        <>
+                                            <Sun className="h-4 w-4" />
+                                            <span>Light</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Moon className="h-4 w-4" />
+                                            <span>Dark</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                            
+                            <button
+                                onClick={() => {
+                                    localStorage.removeItem('token');
+                                    handleNavigation('/');
+                                }}
+                                className={`w-full py-2 text-center rounded-lg font-medium ${
+                                    darkMode 
+                                        ? 'bg-red-500/20 text-red-400' 
+                                        : 'bg-red-50 text-red-600'
+                                }`}
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                )}
             </nav>
 
             <main className="max-w-7xl mx-auto p-6">
@@ -231,7 +329,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
 
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {events.map((event) => (
-                        <div key={event.id} className={`group rounded-lg shadow-md hover:shadow-xl overflow-hidden transition-all duration-300 ${
+                        <div key={event._id || event.id} className={`group rounded-lg shadow-md hover:shadow-xl overflow-hidden transition-all duration-300 ${
                             darkMode 
                                 ? 'bg-gray-800 border border-gray-700' 
                                 : 'bg-white border border-purple-100'
@@ -332,7 +430,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                     : 'bg-gradient-to-br from-white to-purple-50'
                             }`}>
                                 <button 
-                                    onClick={() => handleRegister(event.id)}
+                                    onClick={() => handleRegister(event._id || event.id)}
                                     disabled={event.seatsAvailable === 0 || event.isRegistered}
                                     className={`w-full py-3 px-4 rounded-lg font-medium shadow-sm transition-all duration-300 flex items-center justify-center gap-2 group
                                         ${event.isRegistered

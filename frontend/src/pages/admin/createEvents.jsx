@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Menu, X } from 'lucide-react';
 
 export default function CreateEvent({ darkMode, toggleDarkMode }) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [sendEmail, setSendEmail] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
@@ -72,7 +73,21 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
           }`}>
             Create Event
           </h1>
-          <div className="flex items-center gap-4">
+          
+          {/* Mobile menu button */}
+          <button 
+            className="md:hidden p-2 rounded-md"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? (
+              <X className={darkMode ? 'text-white' : 'text-gray-800'} />
+            ) : (
+              <Menu className={darkMode ? 'text-white' : 'text-gray-800'} />
+            )}
+          </button>
+          
+          {/* Desktop menu */}
+          <div className="hidden md:flex items-center gap-4">
             <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
               Welcome, Admin
             </span>
@@ -108,6 +123,65 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
             </button>
           </div>
         </div>
+        
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className={`md:hidden mt-4 py-3 px-2 rounded-lg shadow-lg ${
+            darkMode ? 'bg-gray-700' : 'bg-white'
+          }`}>
+            <div className="flex flex-col space-y-3">
+              <div className="flex items-center justify-between px-2 mb-2">
+                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
+                  Welcome, Admin
+                </span>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium ${
+                  darkMode ? 'bg-purple-600' : 'bg-purple-700'
+                }`}>
+                  A
+                </div>
+              </div>
+              
+              <button
+                onClick={() => navigate('/admin/dashboard')}
+                className={`w-full py-2 text-center rounded ${
+                  darkMode ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-800'
+                }`}
+              >
+                Admin Dashboard
+              </button>
+              
+              <button
+                onClick={toggleDarkMode}
+                className={`w-full py-2 text-center rounded flex items-center justify-center space-x-2 ${
+                  darkMode ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-800'
+                }`}
+              >
+                {darkMode ? (
+                  <>
+                    <Sun className="h-4 w-4" />
+                    <span>Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="h-4 w-4" />
+                    <span>Dark Mode</span>
+                  </>
+                )}
+              </button>
+              
+              <button
+                onClick={() => navigate('/')}
+                className={`w-full py-2 text-center rounded-lg font-medium ${
+                  darkMode 
+                    ? 'bg-red-500/20 text-red-400' 
+                    : 'bg-red-50 text-red-600'
+                }`}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Main Content */}

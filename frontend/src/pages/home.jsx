@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { CalendarClock, Users, Bell } from "lucide-react"
+import { CalendarClock, Users, Bell, LogIn } from "lucide-react"
 import Footer from "../components/footer"
 import Navbar from "../components/navbar"
 
@@ -29,16 +29,6 @@ export default function Home({ darkMode, toggleDarkMode }) {
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  {/* <Link to="/events">
-                    <button className={`flex items-center px-6 py-3 rounded-lg ${
-                      darkMode 
-                        ? 'bg-purple-500 hover:bg-purple-600' 
-                        : 'bg-purple-600 hover:bg-purple-700'
-                    } text-white font-medium`}>
-                      <CalendarClock className="h-5 w-5 mr-2" />
-                      Browse Events
-                    </button>
-                  </Link> */}
                   <Link to="/register">
                     <button className={`flex items-center px-6 py-3 rounded-lg border-2 ${
                       darkMode 
@@ -47,6 +37,16 @@ export default function Home({ darkMode, toggleDarkMode }) {
                     } font-medium`}>
                       <Users className="h-5 w-5 mr-2" />
                       Create Account
+                    </button>
+                  </Link>
+                  <Link to="/login">
+                    <button className={`flex items-center px-6 py-3 rounded-lg border-2 ${
+                      darkMode 
+                        ? 'border-purple-400 text-purple-400 hover:bg-purple-900/30' 
+                        : 'border-purple-600 text-purple-600 hover:bg-purple-50'
+                    } font-medium`}>
+                      <LogIn className="h-5 w-5 mr-2" />
+                     Login
                     </button>
                   </Link>
                 </div>

@@ -17,13 +17,6 @@ export default function Login({ darkMode }) {
     setError('');
     setLoading(true);
 
-    // if (accountType === 'admin') {
-    //   navigate('/admin/dashboard');
-    // } else {
-    //   navigate('/user/dashboard');
-    // }
-    // return;
-
     try {
       const response = await axios.post(`${API_BASE_URL}/api/login`, {
         email,
@@ -57,12 +50,16 @@ export default function Login({ darkMode }) {
   return (
     <div className={`min-h-screen flex items-center justify-center px-4 ${
       darkMode ? 'bg-gray-900' : 'bg-gray-50'
-    }`}>
-      <div className={`w-full max-w-md space-y-8 ${
-        darkMode 
-          ? 'bg-gray-800 text-white' 
-          : 'bg-white text-gray-900'
-      } p-8 rounded-xl shadow-lg`}>
+    } bg-cover bg-center bg-no-repeat`}
+    style={{backgroundImage: "url('/background.jpg')"}}>
+      <div className={`w-full max-w-md space-y-8 p-8 rounded-xl shadow-lg backdrop-blur-sm ${
+        darkMode ? 'text-white' : 'text-gray-900'
+      }`}
+      style={{
+        backgroundColor: darkMode 
+          ? 'hsla(240, 10%, 16%, 0.8)' 
+          : 'hsla(0, 0%, 100%, 0.85)'
+      }}>
         <div className="text-center space-y-6">
           <div className="flex flex-col items-center justify-center gap-4">
             <img 
