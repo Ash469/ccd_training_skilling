@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
   res.send('Training  And Skilling Portal API Server is running');
 });
 app.use('/api', authRoutes);
-app.use('/api/events', eventRoutes); // Add this line
+app.use('/api/events', eventRoutes); 
 app.use('/api/email', sendEmailRoutes);
 
 const PORT = process.env.PORT || 5000;

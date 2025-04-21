@@ -220,17 +220,18 @@ const microsoftAuth = async (req, res) => {
         let rollNumber;
         
         // Try to extract roll number from email if it's in a format like 230104023@iitg.ac.in
+        // Extract roll number from email if it follows a pattern like 230104023@iitg.ac.in
         const rollNumberMatch = email.match(/^(\d{9})@/);
         if (rollNumberMatch) {
           rollNumber = parseInt(rollNumberMatch[1]);
         } else {
-          // Generate a random roll number as fallback (real apps would handle this differently)
-          rollNumber = Math.floor(Math.random() * 900000000) + 100000000;
+          // Use surname as roll number if available
+          rollNumber = microsoftUser.surname || '';
         }
         
         // Create new user with Microsoft data
         user = await User.create({
-          fullName: microsoftUser.displayName,
+          fullName: microsoftUser.givenName,
           email: email,
           rollNumber: rollNumber,
           microsoftId: microsoftUser.id,
@@ -238,7 +239,7 @@ const microsoftAuth = async (req, res) => {
         });
       } else {
         // Update existing user with latest Microsoft info
-        user.fullName = microsoftUser.displayName;
+        user.fullName = microsoftUser.givenName;
         user.microsoftId = microsoftUser.id;
         await user.save();
       }
