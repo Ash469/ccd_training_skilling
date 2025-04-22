@@ -34,6 +34,15 @@ export default function Login({ darkMode }) {
         const msalInstance = new PublicClientApplication(msalConfig);
         await msalInstance.initialize();
         
+        // Try to handle any redirect promises when the component mounts
+        // This helps clear any lingering authentication state
+        try {
+          await msalInstance.handleRedirectPromise();
+        } catch (err) {
+          console.warn("Redirect promise handling error:", err);
+          // Continue anyway as this is just cleanup
+        }
+        
         setMsalInstance(msalInstance);
         setMsalInitialized(true);
         console.log('MSAL initialized successfully');
@@ -55,9 +64,31 @@ export default function Login({ darkMode }) {
     setLoading(true);
     
     try {
+      // Clear any existing sessions before attempting a new login
+      sessionStorage.clear();
+      
+      // Check for existing interaction in progress
+      if (msalInstance.getActiveAccount()) {
+        // Attempt to end any existing sessions
+        try {
+          // Log out the active account silently
+          const accounts = msalInstance.getAllAccounts();
+          if (accounts.length > 0) {
+            await msalInstance.logoutPopup({
+              account: accounts[0],
+              postLogoutRedirectUri: window.location.origin
+            });
+          }
+        } catch (err) {
+          console.warn("Failed to clear previous session:", err);
+          // Continue anyway - we'll try a new login
+        }
+      }
+
       // Login with popup and request user info
       const loginRequest = {
-        scopes: ['user.read', 'profile', 'email', 'openid']
+        scopes: ['user.read', 'profile', 'email', 'openid'],
+        prompt: 'select_account' // Force account selection
       };
 
       const response = await msalInstance.loginPopup(loginRequest);
@@ -78,6 +109,9 @@ export default function Login({ darkMode }) {
         if (backendResponse.data.success) {
           const { token, role } = backendResponse.data.data;
           
+          // Clear any previous data first
+          localStorage.clear();
+          
           localStorage.setItem('token', token);
           localStorage.setItem('userRole', role);
           localStorage.setItem('userData', JSON.stringify(backendResponse.data.data));
@@ -91,10 +125,28 @@ export default function Login({ darkMode }) {
       }
     } catch (error) {
       console.error('Microsoft login error:', error);
-      setError(
-        error.response?.data?.message || 
-        'An error occurred during Microsoft login'
-      );
+      
+      // Special handling for interaction_in_progress error
+      if (error.errorCode === 'interaction_in_progress') {
+        setError('Another login attempt is in progress. Please wait a moment and try again.');
+        
+        // Try to reset the interaction state
+        try {
+          sessionStorage.clear();
+          // Wait a moment
+          setTimeout(() => {
+            window.location.reload(); // Force a page reload as a last resort
+          }, 1000);
+        } catch (err) {
+          console.error("Failed to reset interaction state:", err);
+        }
+      } else {
+        setError(
+          error.response?.data?.message || 
+          error.message || 
+          'An error occurred during Microsoft login'
+        );
+      }
     } finally {
       setLoading(false);
     }

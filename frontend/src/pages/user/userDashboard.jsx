@@ -229,6 +229,8 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                         <button
                             onClick={() => {
                                 localStorage.removeItem('token');
+                                localStorage.removeItem('userRole');
+                                localStorage.removeItem('userData');
                                 handleNavigation('/');
                             }}
                             className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
@@ -294,6 +296,8 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                             <button
                                 onClick={() => {
                                     localStorage.removeItem('token');
+                                    localStorage.removeItem('userRole');
+                                    localStorage.removeItem('userData');
                                     handleNavigation('/');
                                 }}
                                 className={`w-full py-2 text-center rounded-lg font-medium ${
