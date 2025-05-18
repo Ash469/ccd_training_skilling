@@ -63,8 +63,8 @@ const getEvents = asyncHandler(async (req, res) => {
 
 const getUpcomingEvents = asyncHandler(async (req, res) => {
     const events = await Event.find({ 
-        status: 'upcoming',
-        date: { $gte: new Date() }
+        status: 'upcoming'
+       
     })
     .sort({ date: 1 }) // Sort by date in ascending order
     .select('-registeredRollNumbers -createdBy -__v'); // Exclude sensitive fields

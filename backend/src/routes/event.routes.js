@@ -60,6 +60,14 @@ router.delete('/:id/register', protect, async (req, res) => {
         const eventId = req.params.id;
         const userId = req.user.id;
         const user = await User.findById(userId);
+        
+        // Check if user exists before accessing user properties
+        if (!user) {
+            return res.status(404).json({ 
+                success: false,
+                message: 'User not found' 
+            });
+        }
 
         // Find the event and update its registeredUsers array
         const event = await Event.findByIdAndUpdate(eventId, {

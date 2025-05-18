@@ -219,14 +219,19 @@ const microsoftAuth = async (req, res) => {
         const email = microsoftUser.mail || microsoftUser.userPrincipalName;
         let rollNumber;
         
-        // Try to extract roll number from email if it's in a format like 230104023@iitg.ac.in
-        // Extract roll number from email if it follows a pattern like 230104023@iitg.ac.in
-        const rollNumberMatch = email.match(/^(\d{9})@/);
-        if (rollNumberMatch) {
-          rollNumber = parseInt(rollNumberMatch[1]);
-        } else {
-          // Use surname as roll number if available
-          rollNumber = microsoftUser.surname || '';
+        // Use surname as roll number since it's embedded in the email
+        rollNumber = microsoftUser.surname || '';
+        
+        // If surname is not available, we'll attempt to extract from email patterns
+        if (!rollNumber && email.includes('@')) {
+          const emailParts = email.split('@');
+          // Check if the first part could contain the roll number
+          if (emailParts[0]) {
+            const numericMatch = emailParts[0].match(/\d+/);
+            if (numericMatch) {
+              rollNumber = numericMatch[0];
+            }
+          }
         }
         
         // Create new user with Microsoft data
