@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const eventRoutes = require('./routes/event.routes'); 
+const userRoutes = require('./routes/user.routes');
 const sendEmailRoutes = require('./routes/sendEmail.routes');
 
 require('dotenv').config();
@@ -19,8 +20,14 @@ const corsOptions = {
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
+
+// Add CORS debugging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
 
 // Middleware
 app.use(cors(corsOptions));
@@ -32,6 +39,7 @@ app.get('/', (req, res) => {
 });
 app.use('/api', authRoutes);
 app.use('/api/events', eventRoutes); 
+app.use('/api/users', userRoutes);
 app.use('/api/email', sendEmailRoutes);
 
 const PORT = process.env.PORT || 5000;

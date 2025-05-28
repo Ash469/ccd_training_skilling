@@ -42,6 +42,17 @@ const eventSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
+  attendanceRecorded: {
+    type: Boolean,
+    default: false
+  },
+  attendanceRollNumbers: [{
+    type: String,
+    trim: true
+  }],
+  attendanceDate: {
+    type: Date
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'admin',

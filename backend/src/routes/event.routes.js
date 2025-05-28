@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const multer = require('multer');
 const { 
     createEvent, 
     getEvents, 
@@ -8,11 +9,16 @@ const {
     deleteEvent, 
     getUpcomingEvents, 
     registerForEvent,
-    cancelEventRegistration
+    uploadAttendance,
+    getEventAttendance
 } = require('../controllers/event.controller');
 const { protect, admin } = require('../middleware/auth.middleware');
 const User = require('../models/user.model');
 const Event = require('../models/event.model');
+
+// Configure multer for memory storage (for CSV processing)
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 // Add a debug endpoint to test connection - keep this BEFORE any parameterized routes
 router.get('/debug', (req, res) => {
@@ -146,5 +152,11 @@ router.get('/:id/registrations', protect, admin, async (req, res) => {
 router.put('/:id/status', protect, admin, updateEventStatus);
 
 router.delete('/:id', protect, admin, deleteEvent);
+
+// Upload attendance for an event
+router.post('/:id/attendance', protect, admin, upload.single('attendanceFile'), uploadAttendance);
+
+// Get event attendance details
+router.get('/:id/attendance', protect, admin, getEventAttendance);
 
 module.exports = router;

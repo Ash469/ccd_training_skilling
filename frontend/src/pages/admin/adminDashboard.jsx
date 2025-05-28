@@ -154,6 +154,15 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
                     
                     {/* Desktop menu */}
                     <div className="hidden md:flex items-center gap-4">
+                        <button
+                            onClick={() => navigate('/admin/student-analytics')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${darkMode
+                                    ? 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'
+                                    : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                                }`}
+                        >
+                            Student Analytics
+                        </button>
                         <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
                             Welcome Admin
                         </span>
@@ -216,6 +225,15 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
                                 }`}
                             >
                                 Create Event
+                            </button>
+                            
+                            <button
+                                onClick={() => navigate('/admin/student-analytics')}
+                                className={`w-full py-2 text-center rounded ${
+                                    darkMode ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-800'
+                                }`}
+                            >
+                                Student Analytics
                             </button>
                             
                             <button

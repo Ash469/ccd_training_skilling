@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faUserGroup, faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faUserGroup, faDownload, faUpload, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import ErrorFallback from '../../components/ErrorFallback';
 
 export default function EventRegistrations({ darkMode }) {
@@ -13,58 +13,111 @@ export default function EventRegistrations({ darkMode }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [downloading, setDownloading] = useState(false);
+    const [uploadFile, setUploadFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+    const [attendanceStats, setAttendanceStats] = useState(null);
+    const [attendanceRecorded, setAttendanceRecorded] = useState(false);
+    const [attendanceDate, setAttendanceDate] = useState(null);
 
     const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
-    useEffect(() => {
-        const fetchRegistrations = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    throw new Error('No authentication token found. Please login again.');
-                }
-
-                const config = {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    },
-                    timeout: 10000
-                };
-                
-                const response = await axios.get(
-                    `${API_BASE_URL}/api/events/${eventId}/registrations`,
-                    config
-                );
-                
-                if (response.data && response.data.success) {
-                    setRegistrations(response.data.data || []);
-                    setEventName(response.data.eventName || 'Event');
-                } else {
-                    setRegistrations([]);
-                }
-                setLoading(false);
-            } catch (err) {
-                console.error('Error fetching registrations:', err);
-                
-                let errorMsg = 'Failed to fetch registrations. Please try again later.';
-                
-                // Show clearer error for local development
-                if (API_BASE_URL.includes('localhost')) {
-                    errorMsg = 'Could not connect to local server. Make sure your backend is running on port 5000.';
-                }
-                
-                setError(errorMsg);
-                setLoading(false);
+    const fetchAttendanceData = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found. Please login again.');
             }
-        };
 
-        if (eventId) {
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+                timeout: 10000
+            };
+            
+            const response = await axios.get(
+                `${API_BASE_URL}/api/events/${eventId}/attendance`,
+                config
+            );
+            
+            if (response.data && response.data.success) {
+                setRegistrations(response.data.data || []);
+                setEventName(response.data.eventName || 'Event');
+                setAttendanceStats(response.data.stats);
+                setAttendanceRecorded(response.data.attendanceRecorded);
+                setAttendanceDate(response.data.attendanceDate);
+            } else {
+                setRegistrations([]);
+            }
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching attendance:', err);
+            
+            let errorMsg = 'Failed to fetch attendance data. Please try again later.';
+            
+            if (API_BASE_URL.includes('localhost')) {
+                errorMsg = 'Could not connect to local server. Make sure your backend is running on port 5000.';
+            }
+            
+            setError(errorMsg);
+            setLoading(false);
+            
+            // If attendance endpoint fails, fallback to registrations endpoint
             fetchRegistrations();
         }
     }, [eventId, API_BASE_URL]);
+
+    const fetchRegistrations = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found. Please login again.');
+            }
+
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+                timeout: 10000
+            };
+            
+            const response = await axios.get(
+                `${API_BASE_URL}/api/events/${eventId}/registrations`,
+                config
+            );
+            
+            if (response.data && response.data.success) {
+                setRegistrations(response.data.data || []);
+                setEventName(response.data.eventName || 'Event');
+            } else {
+                setRegistrations([]);
+            }
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching registrations:', err);
+            
+            let errorMsg = 'Failed to fetch registrations. Please try again later.';
+            
+            if (API_BASE_URL.includes('localhost')) {
+                errorMsg = 'Could not connect to local server. Make sure your backend is running on port 5000.';
+            }
+            
+            setError(errorMsg);
+            setLoading(false);
+        }
+    }, [eventId, API_BASE_URL]);
+
+    useEffect(() => {
+        if (eventId) {
+            fetchAttendanceData();
+        }
+    }, [eventId, fetchAttendanceData]);
 
     const handleBack = () => {
         navigate('/admin/dashboard');
@@ -75,14 +128,15 @@ export default function EventRegistrations({ darkMode }) {
             setDownloading(true);
             
             // Convert registrations data to CSV format
-            const headers = ['Name', 'Roll Number', 'Email'];
+            const headers = ['Name', 'Roll Number', 'Email', 'Attendance'];
             const csvRows = [headers];
             
             registrations.forEach(user => {
                 csvRows.push([
                     user.fullName || '',
                     user.rollNumber || '',
-                    user.email || ''
+                    user.email || '',
+                    attendanceRecorded ? (user.present ? 'Present' : 'Absent') : 'Not Recorded'
                 ]);
             });
             
@@ -111,6 +165,57 @@ export default function EventRegistrations({ darkMode }) {
         } catch (err) {
             console.error('Error downloading CSV:', err);
             setDownloading(false);
+        }
+    };
+
+    const handleFileChange = (e) => {
+        setUploadFile(e.target.files[0]);
+    };
+
+    const uploadAttendanceCSV = async () => {
+        if (!uploadFile) {
+            alert('Please select a file to upload');
+            return;
+        }
+
+        try {
+            setUploading(true);
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found. Please login again.');
+            }
+
+            const formData = new FormData();
+            formData.append('attendanceFile', uploadFile);
+
+            const response = await axios.post(
+                `${API_BASE_URL}/api/events/${eventId}/attendance`,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            
+            if (response.data.success) {
+                alert('Attendance uploaded successfully!');
+                fetchAttendanceData(); // Refresh the data
+            }
+            
+            setUploading(false);
+            setUploadFile(null);
+            
+            // Reset the file input
+            const fileInput = document.getElementById('attendanceFile');
+            if (fileInput) fileInput.value = '';
+            
+        } catch (err) {
+            console.error('Error uploading attendance:', err);
+            alert('Failed to upload attendance: ' + (err.response?.data?.message || err.message));
+            setUploading(false);
         }
     };
 
@@ -147,13 +252,13 @@ export default function EventRegistrations({ darkMode }) {
                     <div className={`p-6 border-b ${
                         darkMode ? 'border-gray-700' : 'border-gray-200'
                     }`}>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
                             <h1 className={`text-2xl font-bold ${
                                 darkMode ? 'text-white' : 'text-gray-900'
                             }`}>
                                 {eventName} - Registrations
                             </h1>
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-3">
                                 {registrations.length > 0 && (
                                     <button
                                         onClick={downloadCSV}
@@ -175,6 +280,72 @@ export default function EventRegistrations({ darkMode }) {
                                     <span>{registrations.length} Participants</span>
                                 </div>
                             </div>
+                        </div>
+                        
+                        {/* Attendance upload section */}
+                        <div className={`mt-6 p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                            <h3 className={`text-lg font-medium mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                Attendance Management
+                            </h3>
+                            
+                            {attendanceRecorded ? (
+                                <div className="mb-4">
+                                    <div className={`p-3 rounded-lg ${darkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}>
+                                        <p className="flex items-center gap-2">
+                                            <FontAwesomeIcon icon={faCheck} />
+                                            <span>Attendance recorded on {new Date(attendanceDate).toLocaleDateString()} at {new Date(attendanceDate).toLocaleTimeString()}</span>
+                                        </p>
+                                    </div>
+                                    
+                                    {attendanceStats && (
+                                        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
+                                                <p className="text-sm text-gray-500">Registered</p>
+                                                <p className="text-2xl font-bold">{attendanceStats.totalRegistered}</p>
+                                            </div>
+                                            <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
+                                                <p className="text-sm text-gray-500">Present</p>
+                                                <p className="text-2xl font-bold">{attendanceStats.totalPresent}</p>
+                                            </div>
+                                            <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
+                                                <p className="text-sm text-gray-500">Attendance</p>
+                                                <p className="text-2xl font-bold">{attendanceStats.attendancePercentage}%</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
+                                    <div className="flex-1">
+                                        <input
+                                            type="file"
+                                            id="attendanceFile"
+                                            accept=".csv"
+                                            onChange={handleFileChange}
+                                            className={`block w-full text-sm ${
+                                                darkMode 
+                                                    ? 'text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-gray-600 file:text-gray-200'
+                                                    : 'text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-purple-100 file:text-purple-700'
+                                            }`}
+                                        />
+                                        <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            Upload a CSV file with roll numbers of students who attended the event
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={uploadAttendanceCSV}
+                                        disabled={uploading || !uploadFile}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                                            darkMode
+                                                ? 'bg-blue-800 text-blue-100 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500'
+                                                : 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500'
+                                        }`}
+                                    >
+                                        <FontAwesomeIcon icon={faUpload} />
+                                        <span>{uploading ? 'Uploading...' : 'Upload Attendance'}</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -204,6 +375,13 @@ export default function EventRegistrations({ darkMode }) {
                                         } uppercase tracking-wider`}>
                                             Email
                                         </th>
+                                        {attendanceRecorded && (
+                                            <th scope="col" className={`px-6 py-3 text-left text-xs font-medium ${
+                                                darkMode ? 'text-gray-300' : 'text-gray-500'
+                                            } uppercase tracking-wider`}>
+                                                Attendance
+                                            </th>
+                                        )}
                                     </tr>
                                 </thead>
                                 <tbody className={`divide-y ${
@@ -228,6 +406,23 @@ export default function EventRegistrations({ darkMode }) {
                                             }`}>
                                                 {user.email}
                                             </td>
+                                            {attendanceRecorded && (
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {user.present ? (
+                                                        <span className={`inline-flex items-center justify-center p-1.5 rounded-full ${
+                                                            darkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'
+                                                        }`}>
+                                                            <FontAwesomeIcon icon={faCheck} />
+                                                        </span>
+                                                    ) : (
+                                                        <span className={`inline-flex items-center justify-center p-1.5 rounded-full ${
+                                                            darkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800'
+                                                        }`}>
+                                                            <FontAwesomeIcon icon={faTimes} />
+                                                        </span>
+                                                    )}
+                                                </td>
+                                            )}
                                         </tr>
                                     ))}
                                 </tbody>
