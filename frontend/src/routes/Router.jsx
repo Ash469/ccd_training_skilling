@@ -13,7 +13,7 @@ import EventRegistrations from '../pages/admin/eventRegistrations'
 export default function Router({ darkMode, toggleDarkMode }) {
   return (
     <Routes>
-      <Route path="/" element={<Home darkMode={darkMode} toggleDarkMode={toggleDarkMode} />} />
+      <Route path="/" element={<Login darkMode={darkMode} toggleDarkMode={toggleDarkMode} />} />
       <Route path="/login" element={<Login darkMode={darkMode} toggleDarkMode={toggleDarkMode} />} />
       <Route path="/register" element={<Register darkMode={darkMode} toggleDarkMode={toggleDarkMode} />} />
       <Route path="/user/dashboard" element={<UserDashboard darkMode={darkMode} toggleDarkMode={toggleDarkMode} />} />  

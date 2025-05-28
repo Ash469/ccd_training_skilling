@@ -207,7 +207,10 @@ export default function Login({ darkMode }) {
               alt="IIT Guwahati Logo" 
               className="h-20 w-auto"
             />
-            <h1 className="text-2xl font-bold">Training and Skilling IIT Guwahati</h1>
+            <div className='gap-0'>
+              <h1 className="text-2xl font-bold">Training and Skilling Portal</h1>
+              <h1 className="text-2xl font-bold">IIT Guwahati</h1>
+            </div>
           </div>
         </div>
         {error && (
@@ -234,7 +237,7 @@ export default function Login({ darkMode }) {
                   : 'text-gray-600 hover:bg-gray-200'
             }`}
           >
-            User
+            Student
           </button>
           <button
             onClick={() => setAccountType('admin')}
@@ -248,7 +251,7 @@ export default function Login({ darkMode }) {
                   : 'text-gray-600 hover:bg-gray-200'
             }`}
           >
-            Admin
+            CCD Admin
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -333,13 +336,17 @@ export default function Login({ darkMode }) {
           </button>
         </form>
         <p className="text-center text-sm">
-          Don't have an account?{' '}
-          <Link to="/register" className={
-            darkMode ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-700'
-          }>
-            Register
-          </Link>
-        </p>
+        Don't have an account?{' '}
+        <span
+          className={`font-medium ${
+            darkMode
+              ? 'text-purple-400 hover:text-purple-300'
+              : 'text-purple-600 hover:text-purple-700'
+          }`}
+        >
+          Contact ccd@iitg.ac.in and Register now
+        </span>
+      </p>
       </div>
     </div>
   );
