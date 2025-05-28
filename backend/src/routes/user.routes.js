@@ -29,8 +29,9 @@ router.post('/login', userLogin);
 router.get('/profile', protect, getUserProfile);
 router.put('/profile', protect, updateUserProfile);
 
-router.get('/students', getAllStudents);  
-router.get('/students/:rollNumber', getStudentByRoll);
+// Student routes - protected for admin only
+router.get('/students', protect, admin, getAllStudents);  
+router.get('/students/:rollNumber', protect, admin, getStudentByRoll);
 
 // Admin routes - these should come after the /students routes
 router.get('/', protect, admin, getAllUsers);

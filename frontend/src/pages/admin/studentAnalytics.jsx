@@ -58,17 +58,35 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
       };
 
       console.log('Fetching students from:', `${API_BASE_URL}/api/users/students`);
+      console.log('Using auth token:', token.substring(0, 10) + '...');
       
       // Fetch all students
       const response = await axios.get(`${API_BASE_URL}/api/users/students`, config);
-      console.log('API Response:', response.data);
+      console.log('API Response:', response);
       
-      if (response.data && response.data.success && Array.isArray(response.data.data)) {
+      // Check if the response contains data directly (different response format)
+      if (Array.isArray(response.data)) {
+        console.log('Response is an array, using directly');
+        setStudents(response.data);
+        setError(null);
+      } else if (response.data && response.data.success && Array.isArray(response.data.data)) {
+        console.log('Response has success and data properties');
         setStudents(response.data.data);
+        setError(null);
+      } else if (response.data && Array.isArray(response.data.students)) {
+        // Another potential format
+        console.log('Response has students array property');
+        setStudents(response.data.students);
         setError(null);
       } else {
         console.error('Invalid response format:', response.data);
         setError('Received invalid data format from server');
+        
+        // Try to use the response data directly as a fallback
+        if (response.data && typeof response.data === 'object') {
+          console.log('Attempting to use response.data directly as fallback');
+          setStudents([response.data]);
+        }
       }
     } catch (err) {
       console.error('Error fetching students:', err);
