@@ -1,46 +1,49 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/user.model');
+const Admin = require('../models/admin.model');
 
-const protect = async (req, res, next) => {
-  try {
-    let token;
+exports.protect = async (req, res, next) => {
+  let token;
 
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    try {
+      // Get token from header
       token = req.headers.authorization.split(' ')[1];
-    }
 
-    if (!token) {
-      return res.status(401).json({
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Add user and role to request
+      req.user = decoded;
+
+      next();
+    } catch (error) {
+      console.error(error);
+      res.status(401).json({
         success: false,
-        message: 'Not authorized, no token'
+        message: 'Not authorized, token failed'
       });
     }
+  }
 
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // Add decoded data to request
-    req.user = decoded;
-    req.admin_id = decoded.id;
-    
-    next();
-  } catch (error) {
-    console.error('Auth Error:', error);
+  if (!token) {
     res.status(401).json({
       success: false,
-      message: 'Not authorized, token failed'
+      message: 'Not authorized, no token'
     });
   }
 };
 
-const admin = (req, res, next) => {
+exports.admin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     next();
   } else {
     res.status(403).json({
       success: false,
-      message: 'Not authorized as admin'
+      message: 'Access denied. Admin privileges required.'
     });
   }
 };
-
-module.exports = { protect, admin };

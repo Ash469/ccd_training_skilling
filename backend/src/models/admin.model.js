@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
 const adminSchema = new mongoose.Schema({
   email: {
@@ -17,7 +16,7 @@ const adminSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Method to compare password
+// Method to compare password - direct string comparison
 adminSchema.methods.matchPassword = async function(enteredPassword) {
   return this.password === enteredPassword;  // Direct string comparison
 };

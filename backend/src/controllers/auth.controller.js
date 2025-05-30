@@ -1,10 +1,12 @@
 const User = require('../models/user.model');
 const Admin = require('../models/admin.model');
 const Event = require('../models/event.model');
+const AllowedUser = require('../models/allowedUser.model');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 
-const register = async (req, res) => {
+// Export all functions directly to avoid duplicate exports
+exports.register = async (req, res) => {
   try {
     const { fullName, email, rollNumber, password } = req.body;
 
@@ -53,7 +55,7 @@ const register = async (req, res) => {
   }
 };
 
-const login = async (req, res) => {
+exports.login = async (req, res) => {
   try {
     const { email, password, accountType } = req.body;
 
@@ -61,7 +63,16 @@ const login = async (req, res) => {
     let role;
 
     if (accountType === 'admin') {
+      // For admin login, check if email exists in the Admin collection
       user = await Admin.findOne({ email });
+      
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'This email is not authorized for admin access'
+        });
+      }
+      
       role = 'admin';
     } else {
       user = await User.findOne({ email });
@@ -115,7 +126,7 @@ const login = async (req, res) => {
   }
 };
 
-const getProfile = async (req, res) => {
+exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
       .select('-password')
@@ -165,9 +176,9 @@ const getProfile = async (req, res) => {
   }
 };
 
-const microsoftAuth = async (req, res) => {
+exports.microsoftAuth = async (req, res) => {
   try {
-    const { accessToken, accountType } = req.body;
+    const { accessToken, accountType, email } = req.body;
     
     if (!accessToken) {
       return res.status(400).json({
@@ -175,7 +186,19 @@ const microsoftAuth = async (req, res) => {
         message: 'Access token is required'
       });
     }
-    
+
+    // For student accounts, check if the email is in the allowed list
+    if (accountType === 'user' && email) {
+      const isAllowed = await AllowedUser.findOne({ email: email.toLowerCase() });
+      
+      if (!isAllowed) {
+        return res.status(403).json({
+          success: false,
+          message: 'Your email is not on the authorized list. Please contact CCD for access.'
+        });
+      }
+    }
+
     // Get user info from Microsoft Graph API
     const graphResponse = await axios.get('https://graph.microsoft.com/v1.0/me', {
       headers: {
@@ -184,47 +207,36 @@ const microsoftAuth = async (req, res) => {
     });
     
     const microsoftUser = graphResponse.data;
+    const userEmail = microsoftUser.mail || microsoftUser.userPrincipalName;
     
     // Check if user should be admin or regular user
     let user;
     let role = accountType || 'user';
     
     if (role === 'admin') {
-      // Check if admin exists with this email
-      user = await Admin.findOne({ email: microsoftUser.mail || microsoftUser.userPrincipalName });
+      // Check if the email exists in the Admin collection
+      user = await Admin.findOne({ email: userEmail });
       
       if (!user) {
-        // Admin does not exist, check if there's an admin allowlist or create new admin
-        const adminEmails = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(',') : [];
-        
-        if (adminEmails.includes(microsoftUser.mail || microsoftUser.userPrincipalName)) {
-          // Create admin
-          user = await Admin.create({
-            email: microsoftUser.mail || microsoftUser.userPrincipalName,
-            password: `microsoft-${Date.now()}` // Generate random password (won't be used)
-          });
-        } else {
-          return res.status(403).json({
-            success: false,
-            message: 'This email is not authorized for admin access'
-          });
-        }
+        return res.status(403).json({
+          success: false,
+          message: 'This email is not authorized for admin access'
+        });
       }
     } else {
       // Handle regular user
-      user = await User.findOne({ email: microsoftUser.mail || microsoftUser.userPrincipalName });
+      user = await User.findOne({ email: userEmail });
       
       if (!user) {
         // Extract email and try to parse rollNumber from email (if institutional email)
-        const email = microsoftUser.mail || microsoftUser.userPrincipalName;
         let rollNumber;
         
         // Use surname as roll number since it's embedded in the email
         rollNumber = microsoftUser.surname || '';
         
         // If surname is not available, we'll attempt to extract from email patterns
-        if (!rollNumber && email.includes('@')) {
-          const emailParts = email.split('@');
+        if (!rollNumber && userEmail.includes('@')) {
+          const emailParts = userEmail.split('@');
           // Check if the first part could contain the roll number
           if (emailParts[0]) {
             const numericMatch = emailParts[0].match(/\d+/);
@@ -237,7 +249,7 @@ const microsoftAuth = async (req, res) => {
         // Create new user with Microsoft data
         user = await User.create({
           fullName: microsoftUser.givenName,
-          email: email,
+          email: userEmail,
           rollNumber: rollNumber,
           microsoftId: microsoftUser.id,
           password: `microsoft-${Date.now()}` // Generate random password (won't be used)
@@ -281,9 +293,131 @@ const microsoftAuth = async (req, res) => {
   }
 };
 
-module.exports = {
-  register,
-  login,
-  getProfile,
-  microsoftAuth
+exports.addAllowedUser = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+    
+    // Check if already exists
+    let allowedUser = await AllowedUser.findOne({ email: email.toLowerCase() });
+    
+    if (allowedUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already added to allowed users'
+      });
+    }
+    
+    allowedUser = new AllowedUser({
+      email: email.toLowerCase()
+    });
+    
+    await allowedUser.save();
+    
+    return res.status(201).json({
+      success: true,
+      message: 'User added to allowed list successfully',
+      data: allowedUser
+    });
+  } catch (error) {
+    console.error('Add allowed user error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'An error occurred while adding user to allowed list'
+    });
+  }
+};
+
+exports.getAllowedUsers = async (req, res) => {
+  try {
+    const allowedUsers = await AllowedUser.find().sort({ createdAt: -1 });
+    
+    return res.status(200).json({
+      success: true,
+      count: allowedUsers.length,
+      data: allowedUsers
+    });
+  } catch (error) {
+    console.error('Get allowed users error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'An error occurred while retrieving allowed users'
+    });
+  }
+};
+
+exports.removeAllowedUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const deletedUser = await AllowedUser.findByIdAndDelete(id);
+    
+    if (!deletedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found in allowed list'
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: 'User removed from allowed list successfully'
+    });
+  } catch (error) {
+    console.error('Remove allowed user error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'An error occurred while removing user from allowed list'
+    });
+  }
+};
+
+exports.checkEmailAccess = async (req, res) => {
+  try {
+    const { email, accountType } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+    
+    let allowed = false;
+    let message = 'Email is not authorized to access the portal';
+    
+    if (accountType === 'admin') {
+      // For admin, check if the email exists in Admin collection
+      const adminExists = await Admin.findOne({ email: email.toLowerCase() });
+      allowed = !!adminExists;
+      message = allowed ? 
+        'Email is authorized for admin access' : 
+        'Email is not authorized for admin access';
+    } else {
+      // For regular users, check if email is in allowed list
+      const isAllowed = await AllowedUser.findOne({ email: email.toLowerCase() });
+      allowed = !!isAllowed;
+      message = allowed ? 
+        'Email is authorized to access the portal' : 
+        'Email is not authorized to access the portal';
+    }
+    
+    return res.status(200).json({
+      success: true,
+      allowed,
+      message
+    });
+  } catch (error) {
+    console.error('Email access check error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'An error occurred while checking email access'
+    });
+  }
 };

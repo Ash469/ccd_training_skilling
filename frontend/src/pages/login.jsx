@@ -12,6 +12,9 @@ export default function Login({ darkMode }) {
   const [loading, setLoading] = useState(false);
   const [msalInstance, setMsalInstance] = useState(null);
   const [msalInitialized, setMsalInitialized] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [loginMethod, setLoginMethod] = useState('microsoft'); // 'microsoft' or 'password'
   
   const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
@@ -55,6 +58,82 @@ export default function Login({ darkMode }) {
     initializeMsal();
   }, []);
 
+  const checkEmailAccess = async () => {
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+    
+    setIsCheckingEmail(true);
+    setError('');
+    
+    try {
+      // Check if the email is allowed based on accountType
+      const response = await axios.post(`${API_BASE_URL}/api/check-email-access`, {
+        email: email.toLowerCase(),
+        accountType
+      });
+      
+      if (response.data.allowed) {
+        setIsEmailVerified(true);
+        setError('');
+        // For admin accounts, default to password login
+        if (accountType === 'admin') {
+          setLoginMethod('password');
+        }
+      } else {
+        setError(
+          accountType === 'admin'
+            ? 'This email is not authorized for admin access.'
+            : 'Your email is not authorized to access this portal. Please contact CCD for more information.'
+        );
+      }
+    } catch (error) {
+      setError(
+        error.response?.data?.message || 
+        'An error occurred while verifying your email. Please try again.'
+      );
+    } finally {
+      setIsCheckingEmail(false);
+    }
+  };
+
+  const handlePasswordLogin = async () => {
+    if (!email || !password) {
+      setError('Email and password are required');
+      return;
+    }
+    
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/login`, {
+        email: email.toLowerCase(),
+        password,
+        accountType
+      });
+      
+      if (response.data.success) {
+        const { token, role } = response.data.data;
+        
+        // Clear any previous data
+        localStorage.clear();
+        
+        localStorage.setItem('token', token);
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('userData', JSON.stringify(response.data.data));
+        
+        navigate('/admin/dashboard');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError(error.response?.data?.message || 'Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleMicrosoftLogin = async () => {
     if (!msalInitialized || !msalInstance) {
       setError('Microsoft authentication is not ready yet. Please try again in a moment.');
@@ -88,7 +167,8 @@ export default function Login({ darkMode }) {
       // Login with popup and request user info
       const loginRequest = {
         scopes: ['user.read', 'profile', 'email', 'openid'],
-        prompt: 'select_account' // Force account selection
+        prompt: 'select_account', // Force account selection
+        loginHint: email // Use the verified email as a hint
       };
 
       const response = await msalInstance.loginPopup(loginRequest);
@@ -100,9 +180,13 @@ export default function Login({ darkMode }) {
           account: response.account
         });
         
+        // Get user email from account
+        const userEmail = response.account.username;
+        
         // Send token to backend
         const backendResponse = await axios.post(`${API_BASE_URL}/api/microsoft-auth`, {
           accessToken: tokenResponse.accessToken,
+          email: userEmail,
           accountType
         });
         
@@ -140,6 +224,11 @@ export default function Login({ darkMode }) {
         } catch (err) {
           console.error("Failed to reset interaction state:", err);
         }
+      } else if (error.response?.status === 403) {
+        // Special handling for unauthorized emails
+        setError(
+          'Your email is not authorized to access this portal. Please contact CCD for more information.'
+        );
       } else {
         setError(
           error.response?.data?.message || 
@@ -147,41 +236,6 @@ export default function Login({ darkMode }) {
           'An error occurred during Microsoft login'
         );
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const response = await axios.post(`${API_BASE_URL}/api/login`, {
-        email,
-        password,
-        accountType 
-      });
-
-      if (response.data.success) {
-        const { token, role } = response.data.data;
-        
-        localStorage.setItem('token', token);
-        localStorage.setItem('userRole', role);
-        localStorage.setItem('userData', JSON.stringify(response.data.data));
-        
-        if (role === 'admin') {
-          navigate('/admin/dashboard');
-        } else {
-          navigate('/user/dashboard');
-        }
-      }
-    } catch (error) {
-      setError(
-        error.response?.data?.message || 
-        'An error occurred during login'
-      );
     } finally {
       setLoading(false);
     }
@@ -226,7 +280,11 @@ export default function Login({ darkMode }) {
           darkMode ? 'bg-gray-700' : 'bg-gray-100'
         }`}>
           <button
-            onClick={() => setAccountType('user')}
+            onClick={() => {
+              setAccountType('user');
+              setIsEmailVerified(false);
+              setLoginMethod('microsoft');
+            }}
             className={`py-2 px-4 rounded-md text-sm font-medium transition-colors ${
               accountType === 'user'
                 ? darkMode 
@@ -240,7 +298,10 @@ export default function Login({ darkMode }) {
             Student
           </button>
           <button
-            onClick={() => setAccountType('admin')}
+            onClick={() => {
+              setAccountType('admin');
+              setIsEmailVerified(false);
+            }}
             className={`py-2 px-4 rounded-md text-sm font-medium transition-colors ${
               accountType === 'admin'
                 ? darkMode 
@@ -254,99 +315,166 @@ export default function Login({ darkMode }) {
             CCD Admin
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="m@example.com"
-              className={`w-full px-3 py-2 rounded-lg border ${
-                darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-400'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400'
-              }`}
-              required
-            />
-          </div>
 
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Password</label>
-              <Link to="/forgot-password" className={`text-sm ${
-                darkMode ? 'text-purple-400 hover:text-purple-300' : 'text-purple-600 hover:text-purple-700'
-              }`}>
-                Forgot password?
-              </Link>
-            </div>
-            <div className="relative">
+        {!isEmailVerified ? (
+          <div className="space-y-6">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Email</label>
               <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="m@example.com"
                 className={`w-full px-3 py-2 rounded-lg border ${
                   darkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-900'
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-400'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400'
                 }`}
                 required
               />
             </div>
+            
+            <button
+              type="button"
+              onClick={checkEmailAccess}
+              disabled={isCheckingEmail}
+              className={`w-full py-2.5 px-4 rounded-lg ${
+                darkMode
+                  ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                  : 'bg-purple-600 hover:bg-purple-700 text-white'
+              } font-medium transition-colors ${
+                isCheckingEmail ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {isCheckingEmail ? 'Checking...' : 'Continue'}
+            </button>
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full py-2.5 px-4 rounded-lg ${
-              darkMode
-                ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                : 'bg-purple-600 hover:bg-purple-700 text-white'
-            } font-medium transition-colors ${
-              loading ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-          
-          <div className="relative flex items-center justify-center">
-            <hr className={`w-full border-t ${darkMode ? 'border-gray-600' : 'border-gray-300'}`} />
-            <span className={`px-2 text-xs font-medium ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-500'} absolute`}
-                 style={{backgroundColor: darkMode ? 'hsla(240, 10%, 16%, 0.8)' : 'hsla(0, 0%, 100%, 0.85)'}}>
-              OR
-            </span>
+        ) : (
+          <div className="space-y-6">
+            <div className="bg-green-100 text-green-800 p-3 rounded-lg">
+              <p className="font-medium">Email verified: {email}</p>
+              <p className="text-sm">Please proceed with login.</p>
+            </div>
+            
+            {/* For admin users, show login method toggle */}
+            {accountType === 'admin' && (
+              <div className={`grid grid-cols-2 gap-2 p-1 rounded-lg ${
+                darkMode ? 'bg-gray-700' : 'bg-gray-100'
+              }`}>
+                <button
+                  onClick={() => setLoginMethod('password')}
+                  className={`py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    loginMethod === 'password'
+                      ? darkMode 
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-blue-600 text-white'
+                      : darkMode
+                        ? 'text-gray-300 hover:bg-gray-600'
+                        : 'text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Password Login
+                </button>
+                <button
+                  onClick={() => setLoginMethod('microsoft')}
+                  className={`py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    loginMethod === 'microsoft'
+                      ? darkMode 
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-blue-600 text-white'
+                      : darkMode
+                        ? 'text-gray-300 hover:bg-gray-600'
+                        : 'text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Microsoft Login
+                </button>
+              </div>
+            )}
+            
+            {/* Password login form for admins */}
+            {accountType === 'admin' && loginMethod === 'password' && (
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className={`w-full px-3 py-2 rounded-lg border ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400'
+                    }`}
+                    required
+                  />
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={handlePasswordLogin}
+                  disabled={loading}
+                  className={`w-full py-2.5 px-4 rounded-lg ${
+                    darkMode
+                      ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                      : 'bg-purple-600 hover:bg-purple-700 text-white'
+                  } font-medium transition-colors ${
+                    loading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {loading ? 'Logging in...' : 'Login'}
+                </button>
+              </div>
+            )}
+            
+            {/* Microsoft login button - show for students or admins who selected Microsoft login */}
+            {(accountType === 'user' || (accountType === 'admin' && loginMethod === 'microsoft')) && (
+              <button
+                type="button"
+                onClick={handleMicrosoftLogin}
+                disabled={loading || !msalInitialized}
+                className={`w-full flex items-center justify-center py-2.5 px-4 rounded-lg ${
+                  darkMode
+                    ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                    : 'bg-white hover:bg-gray-100 text-gray-800 border border-gray-300'
+                } font-medium transition-colors ${
+                  (loading || !msalInitialized) ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="mr-2" viewBox="0 0 16 16">
+                  <path d="M7.462 0H0v7.19h7.462V0zM16 0H8.538v7.19H16V0zM7.462 8.211H0V16h7.462V8.211zm8.538 0H8.538V16H16V8.211z"/>
+              </svg>
+              {loading ? 'Logging in...' : 'Login with Microsoft'}
+            </button>
+            )}
+            
+            <button 
+              type="button"
+              onClick={() => setIsEmailVerified(false)}
+              className={`w-full py-2 px-3 rounded-lg ${
+                darkMode
+                  ? 'bg-gray-600 hover:bg-gray-500 text-white'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+              } text-sm font-medium transition-colors`}
+            >
+              Use a different email
+            </button>
           </div>
+        )}
           
-          <button
-            type="button"
-            onClick={handleMicrosoftLogin}
-            disabled={loading || !msalInitialized}
-            className={`w-full flex items-center justify-center py-2.5 px-4 rounded-lg ${
-              darkMode
-                ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                : 'bg-white hover:bg-gray-100 text-gray-800 border border-gray-300'
-            } font-medium transition-colors ${
-              (loading || !msalInitialized) ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="mr-2" viewBox="0 0 16 16">
-              <path d="M7.462 0H0v7.19h7.462V0zM16 0H8.538v7.19H16V0zM7.462 8.211H0V16h7.462V8.211zm8.538 0H8.538V16H16V8.211z"/>
-            </svg>
-            Login with Microsoft
-          </button>
-        </form>
         <p className="text-center text-sm">
-        Don't have an account?{' '}
-        <span
-          className={`font-medium ${
-            darkMode
-              ? 'text-purple-400 hover:text-purple-300'
-              : 'text-purple-600 hover:text-purple-700'
-          }`}
-        >
-          Contact ccd@iitg.ac.in and Register now
-        </span>
-      </p>
+          Don't have an account?{' '}
+          <span
+            className={`font-medium ${
+              darkMode
+                ? 'text-purple-400 hover:text-purple-300'
+                : 'text-purple-600 hover:text-purple-700'
+            }`}
+          >
+            Contact ccd@iitg.ac.in and Register now
+          </span>
+        </p>
       </div>
     </div>
   );
