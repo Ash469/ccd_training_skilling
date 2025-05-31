@@ -209,13 +209,13 @@ export default function Profile({ darkMode, toggleDarkMode }) {
                 <h1 className="text-2xl font-bold">{userProfile.fullName}</h1>
               </div>
               <div className="flex gap-4">
-                {/* <button className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                <button className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                   darkMode 
                     ? 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20' 
                     : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
                 }`}>
                   Edit Profile
-                </button> */}
+                </button>
               </div>
             </div>
 
