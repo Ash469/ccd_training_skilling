@@ -176,6 +176,104 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+// Update the updateUserProfile function to include course
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const {
+      department,
+      hostel,
+      address,
+      mobileNumber,
+      alternateMail,
+      course
+    } = req.body;
+
+    // Find user by id
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update user profile
+    user.department = department || user.department;
+    user.hostel = hostel || user.hostel;
+    user.address = address || user.address;
+    user.mobileNumber = mobileNumber || user.mobileNumber;
+    user.alternateMail = alternateMail || user.alternateMail;
+    user.course = course || user.course;
+    
+    // Set profile as complete if all required fields are filled
+    if (department && hostel && mobileNumber && course) {
+      user.isProfileComplete = true;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        rollNumber: user.rollNumber,
+        department: user.department,
+        hostel: user.hostel,
+        address: user.address,
+        mobileNumber: user.mobileNumber,
+        alternateMail: user.alternateMail,
+        course: user.course,
+        isProfileComplete: user.isProfileComplete
+      }
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile'
+    });
+  }
+};
+
+// Add this function to get profile completion status
+exports.getProfileStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      isProfileComplete: user.isProfileComplete,
+      data: {
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        rollNumber: user.rollNumber,
+        department: user.department,
+        hostel: user.hostel,
+        address: user.address,
+        mobileNumber: user.mobileNumber,
+        alternateMail: user.alternateMail
+      }
+    });
+  } catch (error) {
+    console.error('Error getting profile status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get profile status'
+    });
+  }
+};
+
 exports.microsoftAuth = async (req, res) => {
   try {
     const { accessToken, accountType, email } = req.body;
@@ -278,10 +376,15 @@ exports.microsoftAuth = async (req, res) => {
     
     res.status(200).json({
       success: true,
+      message: 'Successfully authenticated with Microsoft',
       data: {
-        ...userResponse,
+        token,
         role,
-        token
+        _id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        rollNumber: user.rollNumber,
+        isProfileComplete: user.isProfileComplete
       }
     });
   } catch (error) {

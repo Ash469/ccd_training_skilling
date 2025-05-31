@@ -191,7 +191,7 @@ export default function Login({ darkMode }) {
         });
         
         if (backendResponse.data.success) {
-          const { token, role } = backendResponse.data.data;
+          const { token, role, isProfileComplete } = backendResponse.data.data;
           
           // Clear any previous data first
           localStorage.clear();
@@ -203,7 +203,12 @@ export default function Login({ darkMode }) {
           if (role === 'admin') {
             navigate('/admin/dashboard');
           } else {
-            navigate('/user/dashboard');
+            // Check if profile is complete
+            if (!isProfileComplete) {
+              navigate('/user/complete-profile');
+            } else {
+              navigate('/user/dashboard');
+            }
           }
         }
       }
@@ -219,7 +224,7 @@ export default function Login({ darkMode }) {
           sessionStorage.clear();
           // Wait a moment
           setTimeout(() => {
-            window.location.reload(); // Force a page reload as a last resort
+            window.location.reload(); 
           }, 1000);
         } catch (err) {
           console.error("Failed to reset interaction state:", err);

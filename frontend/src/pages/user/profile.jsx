@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarCheck, Mail, IdCard, UserCircle, Sun, Moon, Menu, X } from 'lucide-react';
+import { CalendarCheck, Mail, IdCard, UserCircle, Building, Home, Phone, MapPin, Sun, Moon, Menu, X, BookOpen } from 'lucide-react';
 import axios from 'axios';
 import Footer from '../../components/footer';
 
@@ -16,12 +16,32 @@ export default function Profile({ darkMode, toggleDarkMode }) {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
+        // Make sure localStorage is properly initialized first
         const token = localStorage.getItem('token');
+        
+        if (!token) {
+          // If no token is found, redirect to login
+          navigate('/');
+          return;
+        }
+        
+        // First try the direct route that bypasses middleware
+        try {
+          const response = await axios.get(`${API_BASE_URL}/api/users/profile-direct/${token}`);
+          setUserProfile(response.data);
+          setLoading(false);
+          return;
+        } catch (directErr) {
+          // Silently fall back to standard route
+        }
+        
+        // Fall back to the standard route if direct route fails
         const response = await axios.get(`${API_BASE_URL}/api/users/profile`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
+        
         setUserProfile(response.data);
         setLoading(false);
       } catch (err) {
@@ -31,7 +51,7 @@ export default function Profile({ darkMode, toggleDarkMode }) {
     };
 
     fetchUserProfile();
-  }, [API_BASE_URL]);
+  }, [API_BASE_URL, navigate]);
 
   if (loading) {
     return (
@@ -278,9 +298,89 @@ export default function Profile({ darkMode, toggleDarkMode }) {
                     <p className={`text-sm ${
                       darkMode ? 'text-gray-400' : 'text-gray-600'
                     }`}>Student ID</p>
-                    <p className="font-medium">{userProfile.studentId}</p>
+                    <p className="font-medium">{userProfile.studentId || userProfile.rollNumber}</p>
                   </div>
                 </div>
+                
+                {/* New fields */}
+                <div className="flex items-center gap-3">
+                  <Building className={
+                    darkMode ? 'text-purple-400' : 'text-purple-500'
+                  } />
+                  <div>
+                    <p className={`text-sm ${
+                      darkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>Department</p>
+                    <p className="font-medium">
+                      {userProfile.department ? userProfile.department : 'Not specified'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <BookOpen className={
+                    darkMode ? 'text-purple-400' : 'text-purple-500'
+                  } />
+                  <div>
+                    <p className={`text-sm ${
+                      darkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>Course</p>
+                    <p className="font-medium">
+                      {userProfile.course ? userProfile.course : 'Not specified'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Home className={
+                    darkMode ? 'text-purple-400' : 'text-purple-500'
+                  } />
+                  <div>
+                    <p className={`text-sm ${
+                      darkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>Hostel</p>
+                    <p className="font-medium">
+                      {userProfile.hostel ? userProfile.hostel : 'Not specified'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className={
+                    darkMode ? 'text-purple-400' : 'text-purple-500'
+                  } />
+                  <div>
+                    <p className={`text-sm ${
+                      darkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>Mobile Number</p>
+                    <p className="font-medium">
+                      {userProfile.mobileNumber ? userProfile.mobileNumber : 'Not specified'}
+                    </p>
+                  </div>
+                </div>
+                {userProfile.alternateMail && (
+                  <div className="flex items-center gap-3">
+                    <Mail className={
+                      darkMode ? 'text-purple-400' : 'text-purple-500'
+                    } />
+                    <div>
+                      <p className={`text-sm ${
+                        darkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>Alternate Email</p>
+                      <p className="font-medium">{userProfile.alternateMail}</p>
+                    </div>
+                  </div>
+                )}
+                {userProfile.address && (
+                  <div className="flex items-center gap-3">
+                    <MapPin className={
+                      darkMode ? 'text-purple-400' : 'text-purple-500'
+                    } />
+                    <div>
+                      <p className={`text-sm ${
+                        darkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>Address</p>
+                      <p className="font-medium">{userProfile.address}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-3">
                   <CalendarCheck className={
                     darkMode ? 'text-purple-400' : 'text-purple-500'

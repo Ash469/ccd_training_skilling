@@ -1,6 +1,7 @@
 const User = require('../models/user.model');
 const Event = require('../models/event.model');
 const asyncHandler = require('express-async-handler');
+const jwt = require('jsonwebtoken');
 
 // @desc    Create a new user
 // @route   POST /api/users/register
@@ -20,7 +21,132 @@ const userLogin = asyncHandler(async (req, res) => {
 // @route   GET /api/users/profile
 // @access  Private
 const getUserProfile = asyncHandler(async (req, res) => {
-  // ...existing code...
+  try {
+    // Fetch user with all fields by explicitly refreshing from database
+    const user = await User.findById(req.user._id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Get registered events count
+    const registeredEvents = await Event.find({
+      registeredRollNumbers: user.rollNumber.toString()
+    });
+    
+    // Get upcoming events (events with future dates)
+    const today = new Date();
+    const upcomingEvents = registeredEvents.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate >= today;
+    });
+    
+    // Get completed events (past events)
+    const completedEvents = registeredEvents.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate < today;
+    });
+    
+    // Convert Mongoose document to plain object to ensure all fields are accessible
+    const userObject = user.toObject();
+    
+    // Create a response object with all user fields plus event counts
+    const responseObj = {
+      ...userObject,
+      registeredEvents: registeredEvents.length,
+      upcomingEvents: upcomingEvents.length,
+      completedEvents: completedEvents.length,
+      // Explicitly include all fields to ensure they're included
+      studentId: user.rollNumber,
+      joinedDate: user.createdAt
+    };
+    
+    // Remove sensitive fields
+    delete responseObj.password;
+    
+    // Return complete profile with all fields
+    res.status(200).json(responseObj);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user profile',
+      error: error.message
+    });
+  }
+});
+
+// @desc    Get user profile directly by token
+// @route   GET /api/users/profile-direct/:token
+// @access  Public (but secured by token in URL)
+const getUserProfileById = asyncHandler(async (req, res) => {
+  try {
+    // Get token from URL parameter
+    const token = req.params.token;
+    
+    // Decode the token to get user ID
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
+    
+    // Find user by ID directly
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Get registered events count
+    const registeredEvents = await Event.find({
+      registeredRollNumbers: user.rollNumber.toString()
+    });
+    
+    // Get upcoming events
+    const today = new Date();
+    const upcomingEvents = registeredEvents.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate >= today;
+    });
+    
+    // Get completed events 
+    const completedEvents = registeredEvents.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate < today;
+    });
+    
+    // Create response object with all fields
+    const responseObj = {
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      rollNumber: user.rollNumber,
+      studentId: user.rollNumber,
+      department: user.department,
+      hostel: user.hostel,
+      address: user.address,
+      mobileNumber: user.mobileNumber,
+      alternateMail: user.alternateMail,
+      course: user.course,
+      isProfileComplete: user.isProfileComplete,
+      registeredEvents: registeredEvents.length,
+      upcomingEvents: upcomingEvents.length,
+      completedEvents: completedEvents.length,
+      joinedDate: user.createdAt
+    };
+    
+    // Return complete profile with all fields
+    res.status(200).json(responseObj);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user profile',
+      error: error.message
+    });
+  }
 });
 
 // @desc    Update user profile
@@ -61,15 +187,9 @@ const deleteUser = asyncHandler(async (req, res) => {
 // Get all students for admin
 const getAllStudents = asyncHandler(async (req, res) => {
   try {
-    // Log for debugging
-    console.log("getAllStudents controller called");
-    
     const students = await User.find()
       .select('fullName rollNumber email events')
       .sort({ rollNumber: 1 });
-    
-    // Log the result
-    console.log(`Found ${students.length} students`);
     
     res.status(200).json({
       success: true,
@@ -77,7 +197,6 @@ const getAllStudents = asyncHandler(async (req, res) => {
       data: students
     });
   } catch (error) {
-    console.error("Error in getAllStudents:", error);
     res.status(500).json({
       success: false,
       message: 'Error fetching students',
@@ -89,9 +208,6 @@ const getAllStudents = asyncHandler(async (req, res) => {
 // Get student details by roll number
 const getStudentByRoll = asyncHandler(async (req, res) => {
   try {
-    // Log for debugging
-    console.log("getStudentByRoll controller called with roll:", req.params.rollNumber);
-    
     const { rollNumber } = req.params;
     
     // Find the student
@@ -151,7 +267,6 @@ const getStudentByRoll = asyncHandler(async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching student details:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching student details',
@@ -168,6 +283,7 @@ module.exports = {
   deleteUser,
   userLogin,
   getUserProfile,
+  getUserProfileById,
   updateUserProfile,
   getAllStudents,
   getStudentByRoll

@@ -8,7 +8,9 @@ const {
   addAllowedUser, 
   getAllowedUsers, 
   removeAllowedUser,
-  checkEmailAccess
+  checkEmailAccess,
+  updateUserProfile,
+  getProfileStatus
 } = require('../controllers/auth.controller');
 const { protect, admin } = require('../middleware/auth.middleware');
 
@@ -17,6 +19,10 @@ router.post('/login', login);
 router.get('/users/profile', protect, getProfile);
 router.post('/microsoft-auth', microsoftAuth);
 router.post('/check-email-access', checkEmailAccess);
+
+// Add new profile routes
+router.put('/update-profile', protect, updateUserProfile);
+router.get('/profile-status', protect, getProfileStatus);
 
 // Allowed users management (admin only)
 router.post('/allowed-users', protect, admin, addAllowedUser);

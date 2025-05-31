@@ -11,7 +11,8 @@ const {
   getStudentByRoll,
   userLogin,
   getUserProfile,
-  updateUserProfile
+  updateUserProfile,
+  getUserProfileById
 } = require('../controllers/user.controller');
 
 // Debug route to test the API
@@ -24,9 +25,10 @@ router.get('/debug', (req, res) => {
 });
 
 // User routes
-router.post('/register', createUser);
+// router.post('/register', createUser);
 router.post('/login', userLogin);
 router.get('/profile', protect, getUserProfile);
+router.get('/profile-direct/:token', getUserProfileById); // Add a direct route that doesn't use middleware
 router.put('/profile', protect, updateUserProfile);
 
 // Student routes - protected for admin only
