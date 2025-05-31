@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarDays, MapPin, User, Clock, Users, Moon, Sun, Menu, X } from 'lucide-react';
+import { CalendarDays, MapPin, User, Clock, Users, Moon, Sun, Menu, X, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
 
 export default function UserDashboard({ darkMode, toggleDarkMode }) {
@@ -12,6 +12,9 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
     const [, setUserRegisteredEventIds] = useState([]);
     const [user, setUser] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [showDisclaimer, setShowDisclaimer] = useState(false);
+    const [selectedEventId, setSelectedEventId] = useState(null);
+    const [isConfirmed, setIsConfirmed] = useState(false);
 
     const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
     useEffect(() => {
@@ -82,6 +85,20 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
 
     const handleNavigation = (path) => {
         navigate(path);
+    };
+
+    const handleRegisterClick = (eventId) => {
+        setSelectedEventId(eventId);
+        setShowDisclaimer(true);
+        setIsConfirmed(false); // Reset confirmation state when opening modal
+    };
+
+    const handleConfirmRegistration = async () => {
+        setShowDisclaimer(false);
+        if (selectedEventId) {
+            await handleRegister(selectedEventId);
+            setSelectedEventId(null);
+        }
     };
 
     const handleRegister = async (eventId) => {
@@ -181,11 +198,18 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                 darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'
             }`}>
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <h1 className={`text-xl font-semibold ${
-                        darkMode ? 'text-purple-400' : 'text-purple-600'
-                    }`}>
-                        Training and Skilling
-                    </h1>
+                    <div className="flex items-center">
+                        <img 
+                            src="/logo.png" 
+                            alt="CCD Logo" 
+                            className="h-12 w-auto mr-3" 
+                        />
+                        <h1 className={`text-xl font-semibold ${
+                            darkMode ? 'text-purple-400' : 'text-purple-600'
+                        }`}>
+                            Training and Skilling
+                        </h1>
+                    </div>
                     
                     <button 
                         className="md:hidden p-2 rounded-md"
@@ -374,6 +398,27 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                 }`}>
                                     {event.description}
                                 </p>
+                                
+                                {/* Display promotion link if available */}
+                                {event.promotionLink && (
+                                    <div className={`mt-3 mb-2`}>
+                                        <a
+                                            href={event.promotionLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={`inline-flex items-center text-sm font-medium ${
+                                                darkMode 
+                                                    ? 'text-blue-400 hover:text-blue-300' 
+                                                    : 'text-blue-600 hover:text-blue-800'
+                                            }`}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                            View more details
+                                        </a>
+                                    </div>
+                                )}
 
                                 <div className={`mt-6 space-y-3 pt-4 ${
                                     darkMode ? 'border-t border-gray-700' : 'border-t border-gray-100'
@@ -434,7 +479,9 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                     : 'bg-gradient-to-br from-white to-purple-50'
                             }`}>
                                 <button 
-                                    onClick={() => handleRegister(event._id || event.id)}
+                                    onClick={() => event.seatsAvailable > 0 && !event.isRegistered ? 
+                                        handleRegisterClick(event._id || event.id) : 
+                                        null}
                                     disabled={event.seatsAvailable === 0 || event.isRegistered}
                                     className={`w-full py-3 px-4 rounded-lg font-medium shadow-sm transition-all duration-300 flex items-center justify-center gap-2 group
                                         ${event.isRegistered
@@ -502,6 +549,88 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                         : 'bg-red-500 text-white'
                 }`}>
                     {notification.message}
+                </div>
+            )}
+
+            {/* Disclaimer Modal */}
+            {showDisclaimer && (
+                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+                    <div className={`max-w-md w-full p-6 rounded-xl shadow-xl ${
+                        darkMode ? 'bg-gray-800' : 'bg-white'
+                    }`}>
+                        <div className="flex items-center mb-4 text-amber-500">
+                            <AlertTriangle className="h-6 w-6 mr-2" />
+                            <h3 className="text-lg font-bold">Disclaimer</h3>
+                        </div>
+                        
+                        <div className={`p-4 rounded-lg mb-4 ${
+                            darkMode ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50'
+                        }`}>
+                            <p className={`mb-3 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                                <em>Disclaimer:</em>
+                            </p>
+                            <ul className={`list-disc space-y-2 pl-5 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                                <li>You are about to register for this CCD event.</li>
+                                <li><em>Seats are limited</em>, so please register only if you are sure you will attend.</li>
+                                <li>We <em>analyze attendance data regularly</em>. If someone is found absent from multiple events after registering, <strong>CCD may restrict their participation in future events</strong>.</li>
+                                <li>Once registered, <em>you cannot cancel your registration</em> unless CCD provides an official window for deregistration.</li>
+                                <li>Please be considerate — register only if you are certain about attending, so that <em>others also get a fair chance</em> to participate.</li>
+                            </ul>
+                            
+                            <div className="mt-5 flex items-start border-t pt-4 border-amber-200/30">
+                                <p className={`font-medium mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                                    <em>Please check the box below:</em>
+                                </p>
+                            </div>
+                            
+                            <div className="mt-2 flex items-start">
+                                <input 
+                                    type="checkbox" 
+                                    id="confirmRegistration" 
+                                    checked={isConfirmed}
+                                    onChange={() => setIsConfirmed(!isConfirmed)}
+                                    className={`mt-1 h-4 w-4 rounded border-gray-300 ${darkMode ? 'bg-gray-700 border-gray-600' : ''}`}
+                                />
+                                <label 
+                                    htmlFor="confirmRegistration" 
+                                    className={`ml-2 text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}
+                                >
+                                    "I have read this carefully and I confirm my registration for this event."
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div className="flex justify-end space-x-3">
+                            <button 
+                                onClick={() => {
+                                    setShowDisclaimer(false);
+                                    setSelectedEventId(null);
+                                }}
+                                className={`px-4 py-2 rounded-lg ${
+                                    darkMode 
+                                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleConfirmRegistration}
+                                disabled={!isConfirmed}
+                                className={`px-4 py-2 rounded-lg font-medium ${
+                                    isConfirmed 
+                                        ? darkMode 
+                                            ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                                            : 'bg-purple-600 hover:bg-purple-700 text-white'
+                                        : darkMode 
+                                            ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                                            : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                }`}
+                            >
+                                Register
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

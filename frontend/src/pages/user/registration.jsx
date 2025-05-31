@@ -21,6 +21,7 @@ export default function Registration({ darkMode, toggleDarkMode }) {
             Authorization: `Bearer ${token}`
           }
         });
+        console.log("Fetched registered events:", response.data);
         setRegisteredEvents(response.data);
         setLoading(false);
       // eslint-disable-next-line no-unused-vars
@@ -86,11 +87,18 @@ export default function Registration({ darkMode, toggleDarkMode }) {
         darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'
       }`}>
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className={`text-xl font-semibold ${
-            darkMode ? 'text-purple-400' : 'text-purple-600'
-          }`}>
-            My Registrations
-          </h1>
+          <div className="flex items-center">
+            <img 
+              src="/logo.png" 
+              alt="CCD Logo" 
+              className="h-12 w-auto mr-3" 
+            />
+            <h1 className={`text-xl font-semibold ${
+              darkMode ? 'text-purple-400' : 'text-purple-600'
+            }`}>
+              My Registrations
+            </h1>
+          </div>
           
           {/* Mobile menu button */}
           <button 
@@ -186,17 +194,17 @@ export default function Registration({ darkMode, toggleDarkMode }) {
                 No Events Registered
               </h3>
               <p className="mb-4">You haven't registered for any events yet.</p>
-              <button
-                onClick={() => handleNavigation('/user/dashboard')}
-                className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  darkMode 
-                    ? 'bg-purple-400/10 text-purple-400 hover:bg-purple-400/20' 
-                    : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
-                }`}
-              >
-                Browse Available Events
-              </button>
-            </div>
+                <button
+                  onClick={() => handleNavigation('/user/dashboard')}
+                  className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${
+                    darkMode 
+                      ? 'bg-purple-400/10 text-purple-400 hover:bg-purple-400/20' 
+                      : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                  }`}
+                >
+                  Browse Available Events
+                </button>
+              </div>
           ) : (
             registeredEvents.map((event) => (
               <div key={event._id} className={`group rounded-lg shadow-md overflow-hidden transition-all duration-300 ${
@@ -290,7 +298,8 @@ export default function Registration({ darkMode, toggleDarkMode }) {
                         </div>
                       </div>
 
-                      {event.status === 'upcoming' && (
+                      {/* Fixed condition: Only show cancel button when both conditions are met */}
+                      {event.status === 'upcoming' && event.isCancellationAllowed && (
                         <button
                           onClick={() => handleCancelRegistration(event._id)}
                           className={`px-4 py-2 h-fit rounded-lg font-medium transition-all duration-200 ${

@@ -1,14 +1,31 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon, Menu, X } from 'lucide-react';
+import { Sun, Moon, Menu, X, Calendar } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import axios from 'axios';
 
 export default function CreateEvent({ darkMode, toggleDarkMode }) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [sendEmail, setSendEmail] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [promotionLink, setPromotionLink] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Form fields
+  const [eventName, setEventName] = useState('');
+  const [speaker, setSpeaker] = useState('');
+  const [description, setDescription] = useState('');
+  const [time, setTime] = useState('');
+  const [venue, setVenue] = useState('');
+  const [maxSeats, setMaxSeats] = useState('');
 
   const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
+  // Calculate minimum date for date input (today)
+  const today = new Date();
+  const minDate = today;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,47 +36,105 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
       if (!token) {
         throw new Error('No authentication token found');
       }
-  
-      const formData = {
-        eventName: e.target.elements.eventName.value,
-        speaker: e.target.elements.speaker.value,
-        description: e.target.elements.description.value,
-        date: e.target.elements.date.value,
-        time: e.target.elements.time.value,
-        venue: e.target.elements.venue.value,
-        maxSeats: parseInt(e.target.elements.maxSeats.value),
-        sendEmail: sendEmail
+
+      // Format date as YYYY-MM-DD
+      const formattedDate = selectedDate.toISOString().split('T')[0];
+
+      // Create event data object
+      const eventData = {
+        eventName,
+        speaker,
+        description,
+        date: formattedDate,
+        time,
+        venue,
+        maxSeats: parseInt(maxSeats, 10),
+        sendEmail,
       };
+
+      // Add promotion link if provided
+      if (promotionLink) {
+        eventData.promotionLink = promotionLink;
+      }
+
+      console.log('Submitting event data:', eventData);
   
-      const response = await fetch(`${API_BASE_URL}/api/events/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/api/events/create`, 
+        eventData, 
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          }
+        }
+      );
   
-      const data = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(data.message || 'Error creating event');
+      console.log('Event creation response:', response.data);
+      
+      if (response.data && response.data.success) {
+        alert('Event created successfully!');
+        navigate('/admin/dashboard');
+      } else {
+        throw new Error(response.data?.message || 'Unknown error occurred');
       }
   
-      // Show simple alert
-      alert('Event created successfully!');
-      
-      // Navigate to admin dashboard
-      navigate('/admin/dashboard');
-  
     } catch (error) {
-      // Show error in alert
-      alert('Error: ' + error.message);
-      console.error('Error:', error);
+      console.error('Error creating event:', error);
+      console.error('Response data:', error.response?.data);
+      alert('Error: ' + (error.response?.data?.message || error.message || 'Failed to create event'));
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Custom date picker styles
+  const datePickerWrapperClassName = darkMode 
+    ? "bg-gray-700 border-gray-600 text-white rounded-lg shadow-sm" 
+    : "bg-white border-gray-300 text-gray-900 rounded-lg shadow-sm";
+  
+  const datePickerClassName = darkMode
+    ? "bg-gray-700 text-white"
+    : "bg-white text-gray-900";
+  
+  // Custom header for the datepicker
+  const CustomDatePickerHeader = ({ 
+    date,
+    decreaseMonth,
+    increaseMonth,
+    prevMonthButtonDisabled,
+    nextMonthButtonDisabled
+  }) => (
+    <div className={`flex items-center justify-between px-2 py-2 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+      <button
+        onClick={decreaseMonth}
+        disabled={prevMonthButtonDisabled}
+        className={`p-1 rounded-full ${
+          darkMode 
+            ? 'text-gray-300 hover:bg-gray-700 disabled:text-gray-600' 
+            : 'text-gray-700 hover:bg-gray-200 disabled:text-gray-400'
+        }`}
+        type="button"
+      >
+        ❮
+      </button>
+      <div className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+        {date.toLocaleString('default', { month: 'long', year: 'numeric' })}
+      </div>
+      <button
+        onClick={increaseMonth}
+        disabled={nextMonthButtonDisabled}
+        className={`p-1 rounded-full ${
+          darkMode 
+            ? 'text-gray-300 hover:bg-gray-700 disabled:text-gray-600' 
+            : 'text-gray-700 hover:bg-gray-200 disabled:text-gray-400'
+        }`}
+        type="button"
+      >
+        ❯
+      </button>
+    </div>
+  );
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'}`}>
@@ -68,11 +143,18 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
         darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'
       }`}>
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className={`text-xl font-semibold ${
-            darkMode ? 'text-purple-400' : 'text-purple-600'
-          }`}>
-            Create Event
-          </h1>
+          <div className="flex items-center">
+            <img 
+              src="/logo.png" 
+              alt="CCD Logo" 
+              className="h-12 w-auto mr-3" 
+            />
+            <h1 className={`text-xl font-semibold ${
+              darkMode ? 'text-purple-400' : 'text-purple-600'
+            }`}>
+              Create Event
+            </h1>
+          </div>
           
           {/* Mobile menu button */}
           <button 
@@ -211,7 +293,8 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 </label>
                 <input
                   type="text"
-                  name="eventName"
+                  value={eventName}
+                  onChange={(e) => setEventName(e.target.value)}
                   required
                   className={`w-full p-2 rounded-lg border ${
                     darkMode 
@@ -229,7 +312,8 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 </label>
                 <input
                   type="text"
-                  name="speaker"
+                  value={speaker}
+                  onChange={(e) => setSpeaker(e.target.value)}
                   required
                   className={`w-full p-2 rounded-lg border ${
                     darkMode 
@@ -247,7 +331,8 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 Description
               </label>
               <textarea
-                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 required
                 rows="4"
                 className={`w-full p-2 rounded-lg border ${
@@ -257,6 +342,27 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 } focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
                 placeholder="Enter event description"
               />
+            </div>
+            <div className="mt-4 space-y-2">
+              <label className={`block text-sm font-medium ${
+                darkMode ? 'text-gray-300' : 'text-gray-700'
+              }`}>
+                Promotion Link
+              </label>
+              <input
+                type="url"
+                value={promotionLink}
+                onChange={(e) => setPromotionLink(e.target.value)}
+                className={`w-full p-2 rounded-lg border ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-300'
+                } focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
+                placeholder="https://example.com/event-details"
+              />
+              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Add a link to promotional materials, registration page, or additional details
+              </p>
             </div>
           </div>
 
@@ -276,16 +382,33 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 }`}>
                   Date
                 </label>
-                <input
-                  type="date"
-                  name="date"
-                  required
-                  className={`w-full p-2 rounded-lg border ${
-                    darkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white'
-                      : 'bg-white border-gray-300'
-                  } focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
-                />
+                <div className="relative flex items-center">
+                  <div className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
+                    darkMode ? 'text-purple-400' : 'text-purple-600'
+                  }`}>
+                    <Calendar className="h-5 w-5" />
+                  </div>
+                  <DatePicker
+                    selected={selectedDate}
+                    onChange={date => setSelectedDate(date)}
+                    minDate={minDate}
+                    dateFormat="MMMM d, yyyy"
+                    className={`w-full p-2 pl-10 rounded-lg border ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white'
+                        : 'bg-white border-gray-300'
+                    } focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
+                    wrapperClassName="w-full"
+                    calendarClassName={datePickerClassName}
+                    popperClassName={datePickerWrapperClassName}
+                    renderCustomHeader={CustomDatePickerHeader}
+                    dayClassName={() =>
+                      darkMode
+                        ? 'text-white hover:bg-purple-700'
+                        : 'text-gray-900 hover:bg-purple-100'
+                    }
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className={`block text-sm font-medium ${
@@ -295,7 +418,8 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 </label>
                 <input
                   type="time"
-                  name="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
                   required
                   className={`w-full p-2 rounded-lg border ${
                     darkMode 
@@ -312,7 +436,8 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 </label>
                 <input
                   type="text"
-                  name="venue"
+                  value={venue}
+                  onChange={(e) => setVenue(e.target.value)}
                   required
                   className={`w-full p-2 rounded-lg border ${
                     darkMode 
@@ -330,7 +455,8 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 </label>
                 <input
                   type="number"
-                  name="maxSeats"
+                  value={maxSeats}
+                  onChange={(e) => setMaxSeats(e.target.value)}
                   min="1"
                   required
                   className={`w-full p-2 rounded-lg border ${
@@ -372,7 +498,7 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
           <div className="flex justify-end gap-4">
             <button
               type="button"
-              onClick={() => navigate('/admin')}
+              onClick={() => navigate('/admin/dashboard')}
               className={`px-4 py-2 rounded-lg font-medium ${
                 darkMode
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'

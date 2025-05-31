@@ -11,7 +11,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
         }`}>
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-                    <img src="/logo.png" alt="Training And Skilling Logo" className="h-8" />
+                    <img src="/logo.png" alt="CCD Logo" className="h-10" />
                     <span className={darkMode ? 'text-white' : 'text-gray-900'}>Training And Skilling</span>
                 </Link>
                 <nav className="flex items-center gap-4">

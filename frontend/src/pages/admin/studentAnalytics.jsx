@@ -236,11 +236,18 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
         darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'
       }`}>
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className={`text-xl font-semibold ${
-            darkMode ? 'text-purple-400' : 'text-purple-600'
-          }`}>
-            Student Analytics
-          </h1>
+          <div className="flex items-center">
+            <img 
+              src="/logo.png" 
+              alt="CCD Logo" 
+              className="h-10 w-auto mr-2 sm:h-12 sm:mr-3" 
+            />
+            <h1 className={`text-lg sm:text-xl font-semibold ${
+              darkMode ? 'text-purple-400' : 'text-purple-600'
+            }`}>
+              Student Analytics
+            </h1>
+          </div>
           
           {/* Mobile menu button */}
           <button 
@@ -382,21 +389,21 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
         )}
       </nav>
 
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-6">
-          <div className={`flex items-center p-3 rounded-lg shadow-sm ${
+      <div className="max-w-7xl mx-auto px-3 py-4 sm:p-6">
+        <div className="mb-4 sm:mb-6">
+          <div className={`flex items-center p-2 sm:p-3 rounded-lg shadow-sm ${
             darkMode ? 'bg-gray-800' : 'bg-white'
           }`}>
             <FontAwesomeIcon 
               icon={faSearch} 
-              className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} 
+              className={`h-4 sm:h-5 w-4 sm:w-5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} 
             />
             <input
               type="text"
-              placeholder="Search by name, roll number or email..."
+              placeholder="Search student..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`ml-3 w-full outline-none ${
+              className={`ml-2 sm:ml-3 w-full outline-none text-sm sm:text-base ${
                 darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-700'
               }`}
             />
@@ -431,30 +438,30 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
                   onClick={() => fetchStudentDetails(student.rollNumber)}
                 >
                   <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                       <div className={`p-2 rounded-full ${
                         darkMode ? 'bg-gray-700' : 'bg-purple-100'
                       }`}>
                         <FontAwesomeIcon 
                           icon={faUser} 
-                          className={darkMode ? 'text-purple-400' : 'text-purple-600'} 
+                          className={`text-xs sm:text-base ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} 
                         />
                       </div>
                       <div>
-                        <h3 className={`font-medium ${
+                        <h3 className={`font-medium text-sm sm:text-base ${
                           darkMode ? 'text-white' : 'text-gray-900'
                         }`}>
                           {student.fullName || 'Unknown'}
                         </h3>
-                        <div className="flex items-center space-x-2 text-sm">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 text-xs sm:text-sm">
                           <span className={
                             darkMode ? 'text-gray-400' : 'text-gray-600'
                           }>
                             {student.rollNumber || 'No Roll Number'}
                           </span>
-                          <span className={
+                          <span className={`hidden sm:inline ${
                             darkMode ? 'text-gray-500' : 'text-gray-400'
-                          }>•</span>
+                          }`}>•</span>
                           <span className={
                             darkMode ? 'text-gray-400' : 'text-gray-600'
                           }>
@@ -463,7 +470,7 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
                         </div>
                       </div>
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-sm ${
+                    <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs ${
                       darkMode 
                         ? 'bg-purple-500/10 text-purple-400' 
                         : 'bg-purple-100 text-purple-700'
@@ -484,22 +491,22 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
                       </div>
                     ) : studentDetails ? (
                       <div>
-                        <div className="grid md:grid-cols-3 gap-4 mb-6">
-                          <div className={`p-4 rounded-lg ${
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+                          <div className={`p-3 sm:p-4 rounded-lg ${
                             darkMode ? 'bg-gray-800' : 'bg-white'
                           } shadow`}>
-                            <div className="flex items-center gap-3 mb-2">
+                            <div className="flex items-center gap-2 sm:gap-3 mb-2">
                               <FontAwesomeIcon 
                                 icon={faUser} 
-                                className={darkMode ? 'text-purple-400' : 'text-purple-600'} 
+                                className={`text-sm sm:text-base ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} 
                               />
-                              <h4 className={`font-medium ${
+                              <h4 className={`text-sm sm:text-base font-medium ${
                                 darkMode ? 'text-gray-200' : 'text-gray-800'
                               }`}>
                                 Student Info
                               </h4>
                             </div>
-                            <ul className="space-y-2">
+                            <ul className="space-y-2 text-xs sm:text-sm">
                               <li className="flex justify-between">
                                 <span className={darkMode ? 'text-gray-400' : 'text-gray-500'}>Name:</span>
                                 <span className="font-medium">{studentDetails.student.fullName}</span>
@@ -515,15 +522,15 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
                             </ul>
                           </div>
 
-                          <div className={`p-4 rounded-lg ${
+                          <div className={`p-3 sm:p-4 rounded-lg ${
                             darkMode ? 'bg-gray-800' : 'bg-white'
                           } shadow`}>
-                            <div className="flex items-center gap-3 mb-2">
+                            <div className="flex items-center gap-2 sm:gap-3 mb-2">
                               <FontAwesomeIcon 
                                 icon={faChartBar} 
-                                className={darkMode ? 'text-green-400' : 'text-green-600'} 
+                                className={`text-sm sm:text-base ${darkMode ? 'text-green-400' : 'text-green-600'}`} 
                               />
-                              <h4 className={`font-medium ${
+                              <h4 className={`text-sm sm:text-base font-medium ${
                                 darkMode ? 'text-gray-200' : 'text-gray-800'
                               }`}>
                                 Attendance Stats
@@ -573,21 +580,21 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
                             </div>
                           </div>
 
-                          <div className={`p-4 rounded-lg ${
+                          <div className={`p-3 sm:p-4 rounded-lg ${
                             darkMode ? 'bg-gray-800' : 'bg-white'
                           } shadow`}>
-                            <div className="flex items-center gap-3 mb-2">
+                            <div className="flex items-center gap-2 sm:gap-3 mb-2">
                               <FontAwesomeIcon 
                                 icon={faCalendarCheck} 
-                                className={darkMode ? 'text-blue-400' : 'text-blue-600'} 
+                                className={`text-sm sm:text-base ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} 
                               />
-                              <h4 className={`font-medium ${
+                              <h4 className={`text-sm sm:text-base font-medium ${
                                 darkMode ? 'text-gray-200' : 'text-gray-800'
                               }`}>
                                 Event Summary
                               </h4>
                             </div>
-                            <ul className="space-y-2">
+                            <ul className="space-y-2 text-xs sm:text-sm">
                               <li className="flex justify-between">
                                 <div className="flex items-center">
                                   <FontAwesomeIcon 
@@ -630,21 +637,21 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
                         </div>
 
                         {/* Events History */}
-                        <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow`}>
-                          <h4 className={`font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                        <div className={`p-3 sm:p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow`}>
+                          <h4 className={`text-sm sm:text-base font-medium mb-3 sm:mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                             Event History
                           </h4>
 
                           {studentDetails.events.length > 0 ? (
-                            <div className="overflow-x-auto">
-                              <table className="w-full">
+                            <div className="overflow-x-auto -mx-3 sm:mx-0">
+                              <table className="w-full min-w-[640px]">
                                 <thead>
                                   <tr className={darkMode ? 'border-b border-gray-700' : 'border-b'}>
-                                    <th className="py-2 text-left">Event Name</th>
-                                    <th className="py-2 text-left">Date</th>
-                                    <th className="py-2 text-left">Venue</th>
-                                    <th className="py-2 text-left">Status</th>
-                                    <th className="py-2 text-left">Attendance</th>
+                                    <th className="py-2 text-left text-xs sm:text-sm">Event Name</th>
+                                    <th className="py-2 text-left text-xs sm:text-sm">Date</th>
+                                    <th className="py-2 text-left text-xs sm:text-sm">Venue</th>
+                                    <th className="py-2 text-left text-xs sm:text-sm">Status</th>
+                                    <th className="py-2 text-left text-xs sm:text-sm">Attendance</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -653,13 +660,13 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
                                       key={event.id} 
                                       className={darkMode ? 'border-b border-gray-700' : 'border-b border-gray-200'}
                                     >
-                                      <td className="py-3">{event.name}</td>
-                                      <td className="py-3">
+                                      <td className="py-2 sm:py-3 text-xs sm:text-sm">{event.name}</td>
+                                      <td className="py-2 sm:py-3 text-xs sm:text-sm">
                                         {new Date(event.date).toLocaleDateString()}
                                       </td>
-                                      <td className="py-3">{event.venue}</td>
-                                      <td className="py-3">
-                                        <span className={`px-2 py-1 rounded-full text-xs ${
+                                      <td className="py-2 sm:py-3 text-xs sm:text-sm">{event.venue}</td>
+                                      <td className="py-2 sm:py-3">
+                                        <span className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs ${
                                           event.status === 'upcoming'
                                             ? darkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-800'
                                             : event.status === 'ongoing'
@@ -669,24 +676,24 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
                                           {event.status}
                                         </span>
                                       </td>
-                                      <td className="py-3">
+                                      <td className="py-2 sm:py-3">
                                         {event.attended === null ? (
-                                          <span className="flex items-center">
+                                          <span className="flex items-center text-xs sm:text-sm">
                                             <FontAwesomeIcon 
                                               icon={faQuestionCircle} 
                                               className={`mr-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} 
                                             />
-                                            <span className="text-sm">Not verified</span>
+                                            <span>Not verified</span>
                                           </span>
                                         ) : event.attended ? (
-                                          <span className="flex items-center text-green-500">
+                                          <span className="flex items-center text-green-500 text-xs sm:text-sm">
                                             <FontAwesomeIcon icon={faCheckCircle} className="mr-1" />
-                                            <span className="text-sm">Present</span>
+                                            <span>Present</span>
                                           </span>
                                         ) : (
-                                          <span className="flex items-center text-red-500">
+                                          <span className="flex items-center text-red-500 text-xs sm:text-sm">
                                             <FontAwesomeIcon icon={faTimesCircle} className="mr-1" />
-                                            <span className="text-sm">Absent</span>
+                                            <span>Absent</span>
                                           </span>
                                         )}
                                       </td>

@@ -14,19 +14,38 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [newStatus, setNewStatus] = useState('');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+    const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
+    const [cancellationSettings, setCancellationSettings] = useState({
+        isCancellationAllowed: false
+    });
+    
     const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    
     useEffect(() => {
         const fetchEvents = async () => {
             try {
+                setLoading(true);
                 const token = localStorage.getItem('token');
+                
+                if (!token) {
+                    throw new Error('Authentication token not found. Please log in again.');
+                }
+                
                 const config = {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
-                };                
+                };   
+                
                 const response = await axios.get(`${API_BASE_URL}/api/events`, config);
-                const formattedEvents = response.data.data.map(event => ({
+                
+                if (!response.data || !response.data.success) {
+                    throw new Error('Failed to fetch events: ' + (response.data?.message || 'Unknown error'));
+                }
+                
+                const eventsData = response.data.data || [];
+                
+                const formattedEvents = eventsData.map(event => ({
                     id: event._id,
                     name: event.eventName || 'Untitled Event',
                     description: event.description || 'No description available',
@@ -36,13 +55,15 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
                     venue: event.venue || 'TBA',
                     maxSeats: event.maxSeats || 0,
                     registeredUsers: event.registeredUsers || 0,
-                    status: event.status || 'upcoming'
+                    status: event.status || 'upcoming',
+                    promotionLink: event.promotionLink || ''
                 }));
+                
                 setEvents(formattedEvents);
                 setLoading(false);
             } catch (err) {
-                console.error('Error details:', err.response); 
-                setError(err.response?.data?.message || 'Failed to fetch events');
+                console.error('Error fetching events:', err);
+                setError(err.message || 'Failed to fetch events');
                 setLoading(false);
             }
         };
@@ -111,6 +132,66 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
         navigate(`/admin/events/${eventId}/registrations`);
     };
 
+    const handleCancellationSettingsUpdate = async () => {
+        try {
+            console.log('Updating cancellation policy for event:', selectedEvent.id);
+            console.log('New settings:', { isCancellationAllowed: cancellationSettings.isCancellationAllowed });
+            
+            const token = localStorage.getItem('token');
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            const requestBody = { 
+                isCancellationAllowed: cancellationSettings.isCancellationAllowed 
+            };
+            
+            console.log('Request payload:', requestBody);
+            
+            const response = await axios.put(
+                `${API_BASE_URL}/api/events/${selectedEvent.id}/cancellation-policy`,
+                requestBody,
+                config
+            );
+            
+            console.log('Response:', response.data);
+            
+            // Update the events list with the new cancellation policy
+            setEvents(events.map(event => 
+                event.id === selectedEvent.id 
+                    ? { 
+                        ...event, 
+                        isCancellationAllowed: cancellationSettings.isCancellationAllowed
+                      }
+                    : event
+            ));
+            
+            setIsCancellationModalOpen(false);
+            setSelectedEvent(null);
+            setCancellationSettings({
+                isCancellationAllowed: false
+            });
+        } catch (err) {
+            console.error('Error updating cancellation policy:', err);
+            if (err.response) {
+                console.error('Error response data:', err.response.data);
+                console.error('Error response status:', err.response.status);
+            }
+            setError(err.response?.data?.message || 'Failed to update cancellation policy');
+        }
+    };
+
+    const openCancellationModal = (event) => {
+        setSelectedEvent(event);
+        setCancellationSettings({
+            isCancellationAllowed: event.isCancellationAllowed || false
+        });
+        setIsCancellationModalOpen(true);
+    };
+
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
@@ -129,10 +210,18 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
             <nav className={`shadow-sm p-4 transition-colors duration-200 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'
                 }`}>
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <h1 className={`text-xl font-semibold ${darkMode ? 'text-purple-400' : 'text-purple-600'
+                    <div className="flex items-center">
+                        <img 
+                            src="/logo.png" 
+                            alt="CCD Logo" 
+                            className="h-12 w-auto mr-3" 
+                        />
+                        <h1 className={`text-xl font-semibold ${
+                            darkMode ? 'text-purple-400' : 'text-purple-600'
                         }`}>
-                        Admin Dashboard
-                    </h1>
+                            Admin Dashboard
+                        </h1>
+                    </div>
                     
                     {/* Mobile menu button */}
                     <button 
@@ -336,6 +425,29 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
                                         }`}>{event.name}</h2>
                                     <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'
                                         }`}>{event.description}</p>
+                                    
+                                    {/* Display promotion link if available */}
+                                    {event.promotionLink && (
+                                        <div className={`mb-4 p-2 rounded-md ${
+                                            darkMode ? 'bg-gray-700' : 'bg-purple-50'
+                                        }`}>
+                                            <p className={`text-sm font-medium mb-1 ${
+                                                darkMode ? 'text-gray-300' : 'text-gray-700'
+                                            }`}>
+                                                Promotion Link:
+                                            </p>
+                                            <a 
+                                                href={event.promotionLink} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className={`text-sm break-all ${
+                                                    darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
+                                                }`}
+                                            >
+                                                {event.promotionLink}
+                                            </a>
+                                        </div>
+                                    )}
 
                                     <div className="grid md:grid-cols-2 gap-4 text-sm">
                                         <div className="space-y-3">
@@ -387,6 +499,15 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
                                     >
                                         View Registrations
                                     </button>
+                                    <button 
+                                        onClick={() => openCancellationModal(event)}
+                                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${darkMode
+                                                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                                : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                                            }`}
+                                    >
+                                        Cancellation Settings
+                                    </button>
                                     <button className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${darkMode
                                             ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                             : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
@@ -405,6 +526,7 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
                 </div>
             </div>
 
+            {/* Status update modal */}
             {isUpdateModalOpen && selectedEvent && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className={`${
@@ -451,6 +573,64 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
                                 className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
                             >
                                 Update Status
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Cancellation policy modal */}
+            {isCancellationModalOpen && selectedEvent && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className={`${
+                        darkMode ? 'bg-gray-800' : 'bg-white'
+                    } rounded-lg p-6 w-96 shadow-xl`}>
+                        <h3 className={`text-lg font-semibold mb-4 ${
+                            darkMode ? 'text-white' : 'text-gray-900'
+                        }`}>
+                            Registration Cancellation Settings
+                        </h3>
+                        <div className="mb-4">
+                            <label className={`block mb-2 ${
+                                darkMode ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
+                                Event: {selectedEvent.name}
+                            </label>
+                            <div className="flex items-center mb-4">
+                                <input
+                                    type="checkbox"
+                                    id="allowCancellation"
+                                    checked={cancellationSettings.isCancellationAllowed}
+                                    onChange={(e) => setCancellationSettings({
+                                        isCancellationAllowed: e.target.checked
+                                    })}
+                                    className="mr-2"
+                                />
+                                <label htmlFor="allowCancellation" className={`${
+                                    darkMode ? 'text-gray-300' : 'text-gray-700'
+                                }`}>
+                                    {cancellationSettings.isCancellationAllowed 
+                                        ? "Allow students to cancel their registration" 
+                                        : "Don't allow registration cancellation"}
+                                </label>
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => setIsCancellationModalOpen(false)}
+                                className={`px-4 py-2 rounded ${
+                                    darkMode
+                                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                                }`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCancellationSettingsUpdate}
+                                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+                            >
+                                Save Settings
                             </button>
                         </div>
                     </div>

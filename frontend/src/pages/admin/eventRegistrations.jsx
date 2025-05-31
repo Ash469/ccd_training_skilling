@@ -232,18 +232,25 @@ export default function EventRegistrations({ darkMode }) {
     return (
         <div className={`min-h-screen transition-colors duration-200 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'}`}>
             <div className="max-w-6xl mx-auto p-6">
-                <div className="mb-6">
-                    <button 
-                        onClick={handleBack}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                            darkMode 
-                                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
-                        } shadow-sm`}
-                    >
-                        <FontAwesomeIcon icon={faArrowLeft} />
-                        <span>Back to Dashboard</span>
-                    </button>
+                <div className="mb-6 flex justify-between items-center">
+                    <div className="flex items-center">
+                        <img 
+                            src="/logo.png" 
+                            alt="CCD Logo" 
+                            className="h-12 w-auto mr-3" 
+                        />
+                        <button 
+                            onClick={handleBack}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                                darkMode 
+                                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                            } shadow-sm`}
+                        >
+                            <FontAwesomeIcon icon={faArrowLeft} />
+                            <span>Back to Dashboard</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div className={`rounded-lg shadow-md overflow-hidden ${

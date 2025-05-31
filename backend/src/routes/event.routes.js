@@ -10,15 +10,16 @@ const {
     getUpcomingEvents, 
     registerForEvent,
     uploadAttendance,
-    getEventAttendance
+    getEventAttendance,
+    updateCancellationPolicy
 } = require('../controllers/event.controller');
 const { protect, admin } = require('../middleware/auth.middleware');
 const User = require('../models/user.model');
 const Event = require('../models/event.model');
 
-// Configure multer for memory storage (for CSV processing)
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+// Configure multer for attendance uploads (CSV)
+const csvStorage = multer.memoryStorage();
+const csvUpload = multer({ storage: csvStorage });
 
 // Add a debug endpoint to test connection - keep this BEFORE any parameterized routes
 router.get('/debug', (req, res) => {
@@ -26,6 +27,37 @@ router.get('/debug', (req, res) => {
     success: true,
     message: 'Backend API is working',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Enhanced debugging endpoint
+router.get('/debug-admin', protect, (req, res) => {
+  const userId = req.user?.id;
+  const userRole = req.user?.role;
+  
+  // Try to find one event
+  Event.findOne().then(event => {
+    res.status(200).json({
+      success: true,
+      message: 'Debug endpoint',
+      user: {
+        id: userId,
+        role: userRole,
+        isAdmin: userRole === 'admin'
+      },
+      dbConnection: {
+        status: 'connected',
+        foundEvent: event ? true : false
+      },
+      timestamp: new Date().toISOString()
+    });
+  }).catch(err => {
+    res.status(500).json({
+      success: false,
+      message: 'Database error',
+      error: err.message,
+      timestamp: new Date().toISOString()
+    });
   });
 });
 
@@ -46,7 +78,7 @@ router.get('/user/registered', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate({
       path: 'events',
-      select: 'eventName speaker description date time venue status createdAt'
+      select: 'eventName speaker description date time venue status createdAt isCancellationAllowed'
     });
     
     if (!user) {
@@ -59,6 +91,9 @@ router.get('/user/registered', protect, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+// Protected route - only authenticated admins can update cancellation policy
+router.put('/:id/cancellation-policy', protect, admin, updateCancellationPolicy);
 
 // Update the delete registration route
 router.delete('/:id/register', protect, async (req, res) => {
@@ -75,25 +110,45 @@ router.delete('/:id/register', protect, async (req, res) => {
             });
         }
 
-        // Find the event and update its registeredUsers array
-        const event = await Event.findByIdAndUpdate(eventId, {
+        // Find the event and check if cancellation is allowed
+        const event = await Event.findById(eventId);
+        
+        if (!event) {
+            return res.status(404).json({ 
+                success: false,
+                message: 'Event not found' 
+            });
+        }
+        
+        // Check if cancellation is allowed for this event
+        if (!event.isCancellationAllowed) {
+            return res.status(403).json({
+                success: false,
+                message: 'Cancellation is not allowed for this event'
+            });
+        }
+
+        // Update the event's registration data
+        await Event.findByIdAndUpdate(eventId, {
             $pull: { registeredRollNumbers: user.rollNumber.toString() },
             $inc: { registeredUsers: -1 }
-        }, { new: true });
-
-        if (!event) {
-            return res.status(404).json({ message: 'Event not found' });
-        }
+        });
 
         // Remove event from user's events array
         await User.findByIdAndUpdate(userId, {
             $pull: { events: eventId }
         });
 
-        res.json({ message: 'Registration cancelled successfully' });
+        res.json({ 
+            success: true,
+            message: 'Registration cancelled successfully' 
+        });
     } catch (error) {
         console.error('Error cancelling registration:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ 
+            success: false,
+            message: 'Server error' 
+        });
     }
 });
 
@@ -154,7 +209,7 @@ router.put('/:id/status', protect, admin, updateEventStatus);
 router.delete('/:id', protect, admin, deleteEvent);
 
 // Upload attendance for an event
-router.post('/:id/attendance', protect, admin, upload.single('attendanceFile'), uploadAttendance);
+router.post('/:id/attendance', protect, admin, csvUpload.single('attendanceFile'), uploadAttendance);
 
 // Get event attendance details
 router.get('/:id/attendance', protect, admin, getEventAttendance);

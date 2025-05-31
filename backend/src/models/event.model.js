@@ -17,7 +17,19 @@ const eventSchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    required: true
+    required: true,
+    validate: {
+      validator: function(value) {
+        // Skip validation if the document already exists (for updates)
+        if (this.isNew) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return value >= today;
+        }
+        return true; // Always pass validation for existing documents
+      },
+      message: 'Event date must be a future date'
+    }
   },
   time: {
     type: String,
@@ -53,9 +65,13 @@ const eventSchema = new mongoose.Schema({
   attendanceDate: {
     type: Date
   },
+  promotionLink: {
+    type: String,
+    trim: true
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'admin',
+    ref: 'User', // Make sure this matches your User model name
     required: true
   },
   status: {
@@ -63,9 +79,17 @@ const eventSchema = new mongoose.Schema({
     enum: ['upcoming', 'ongoing', 'completed'],
     default: 'upcoming'
   },
+  eventId: {
+    type: String,
+    unique: true
+  },
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  isCancellationAllowed: {
+    type: Boolean,
+    default: false
   }
 });
 

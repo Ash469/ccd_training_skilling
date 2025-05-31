@@ -69,11 +69,18 @@ export default function Profile({ darkMode, toggleDarkMode }) {
         darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'
       }`}>
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className={`text-xl font-semibold ${
-            darkMode ? 'text-purple-400' : 'text-purple-600'
-          }`}>
-            User Profile
-          </h1>
+          <div className="flex items-center">
+            <img 
+              src="/logo.png" 
+              alt="CCD Logo" 
+              className="h-12 w-auto mr-3" 
+            />
+            <h1 className={`text-xl font-semibold ${
+              darkMode ? 'text-purple-400' : 'text-purple-600'
+            }`}>
+              User Profile
+            </h1>
+          </div>
           
           {/* Mobile menu button */}
           <button 
