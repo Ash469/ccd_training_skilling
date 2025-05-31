@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarDays, MapPin, User, Clock, Users, Moon, Sun, CheckCircle, Menu, X } from 'lucide-react';
 import axios from 'axios';
+import Footer from '../../components/footer';
 
 export default function Registration({ darkMode, toggleDarkMode }) {
   const navigate = useNavigate();
@@ -328,6 +329,8 @@ export default function Registration({ darkMode, toggleDarkMode }) {
           {cancelStatus.message}
         </div>
       )}
+        <Footer darkMode={darkMode} />
+
     </div>
   );
 }

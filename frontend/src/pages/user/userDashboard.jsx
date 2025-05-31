@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarDays, MapPin, User, Clock, Users, Moon, Sun, Menu, X, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
+import Footer from '../../components/footer';
 
 export default function UserDashboard({ darkMode, toggleDarkMode }) {
     const navigate = useNavigate();
@@ -207,7 +208,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                         <h1 className={`text-xl font-semibold ${
                             darkMode ? 'text-purple-400' : 'text-purple-600'
                         }`}>
-                            Training and Skilling
+                            Training and Skilling Portal
                         </h1>
                     </div>
                     
@@ -631,8 +632,12 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                             </button>
                         </div>
                     </div>
+                    
                 </div>
             )}
+
+        <Footer darkMode={darkMode} />
+
         </div>
     );
 }

@@ -18,6 +18,9 @@ import {
   faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
 
+import Footer from '../../components/footer';
+
+
 export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
@@ -229,7 +232,7 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-200 ${
+    <div className={`min-h-screen transition-colors duration-200  ${
       darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'
     }`}>
       <nav className={`shadow-sm p-4 transition-colors duration-200 ${
@@ -726,7 +729,10 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
             {searchTerm ? 'No students found matching your search criteria.' : 'No students available.'}
           </div>
         )}
+
       </div>
+      {/* <Footer darkMode={darkMode} /> */}
     </div>
+    
   );
 }

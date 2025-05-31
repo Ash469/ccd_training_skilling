@@ -4,6 +4,7 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faEdit,faTrash,faSun,faMoon,faCalendar,faClock,faUser,faLocationDot,faUsers,faPlus,faBars,faTimes} from '@fortawesome/free-solid-svg-icons';
 import ErrorFallback from '../../components/ErrorFallback';
+import Footer from '../../components/footer';
 
 export default function AdminDashboard({ darkMode, toggleDarkMode }) {
     const navigate = useNavigate();
@@ -359,7 +360,7 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
                 )}
             </nav>
 
-            <div className="max-w-7xl mx-auto p-6">
+            <div className="max-w-7xl mx-auto p-6 pb-12">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'
                         }`}>
@@ -636,6 +637,7 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
                     </div>
                 </div>
             )}
+            <Footer darkMode={darkMode} />
         </div>
     );
 }

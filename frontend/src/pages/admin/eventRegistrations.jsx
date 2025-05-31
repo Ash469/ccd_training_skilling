@@ -4,6 +4,7 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faUserGroup, faDownload, faUpload, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import ErrorFallback from '../../components/ErrorFallback';
+import Footer from '../../components/footer';
 
 export default function EventRegistrations({ darkMode }) {
     const { eventId } = useParams();
@@ -446,6 +447,8 @@ export default function EventRegistrations({ darkMode }) {
                     )}
                 </div>
             </div>
+      <Footer darkMode={darkMode} />
+
         </div>
     );
 }

@@ -1,23 +1,21 @@
 import React from 'react';
-import { FaLinkedin, FaInstagram } from 'react-icons/fa';
+import { FaLinkedin, FaInstagram, FaEnvelope } from 'react-icons/fa';
 
 const Footer = ({ darkMode }) => {
   return (
     <footer
-      className={`w-full border-t backdrop-blur ${
-        darkMode
-          ? 'bg-gray-900/95 border-gray-600'
-          : 'bg-white/95 border-gray-200'
-      }`}
+      className={`p-6 mt-10 w-full border-t backdrop-blur ${darkMode
+        ? 'bg-gray-900/95 border-gray-600'
+        : 'bg-white/95 border-gray-200'
+        }`}
     >
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 pt-6">
         {/* Top Footer Content */}
         <div
-          className={`border-b pb-6 ${
-            darkMode ? 'border-gray-700' : 'border-gray-300'
-          }`}
+          className={`border-b pb-6 ${darkMode ? 'border-gray-700' : 'border-gray-300'
+            }`}
         >
-          
+
           <div className="flex flex-col md:flex-row justify-evenly items-center md:items-start text-center md:text-left gap-8">
 
             {/* CCD Logo and Social */}
@@ -29,6 +27,18 @@ const Footer = ({ darkMode }) => {
                 </span>
               </div>
               <div className="flex items-center self-center gap-4">
+
+                <a
+                  href="mailto:ccd@iitg.ac.in"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <FaEnvelope
+                    size={20}
+                    style={{ color: darkMode ? 'white' : '#1a202c' }}
+                  />
+                </a>
+
                 <a
                   href="https://www.linkedin.com/in/ccdiitg/"
                   target="_blank"
@@ -57,6 +67,8 @@ const Footer = ({ darkMode }) => {
                   <a
                     href="https://iitg.ac.in/ccd/brochures.html"
                     className="hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     Placement Process & Brochures
                   </a>
@@ -65,6 +77,8 @@ const Footer = ({ darkMode }) => {
                   <a
                     href="https://iitg.ac.in/intern/auth/login/recruiter"
                     className="hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     Internship Portal
                   </a>
@@ -80,6 +94,8 @@ const Footer = ({ darkMode }) => {
                   <a
                     href="https://iitg.ac.in/ccd/for_students.html"
                     className="hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     Resume Builder & Resources
                   </a>
@@ -88,14 +104,19 @@ const Footer = ({ darkMode }) => {
                   <a
                     href="https://iitg.ac.in/intern/auth/login/"
                     className="hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     Internship Portal
                   </a>
+
                 </li>
                 <li>
                   <a
                     href="https://iitg.ac.in/placements/auth/login/"
                     className="hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     Placement Portal
                   </a>
@@ -107,11 +128,10 @@ const Footer = ({ darkMode }) => {
 
         {/* Bottom Footer */}
         <div
-          className={`pt-4 text-xs text-center ${
-            darkMode ? 'text-gray-400' : 'text-gray-600'
-          }`}
+          className={`pt-4 text-xs text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'
+            }`}
         >
-          © 2025 Bluebook • Developed by Technical Team CCD IITG
+          © 2025 • Developed by Technical Team CCD IITG
         </div>
       </div>
     </footer>

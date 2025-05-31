@@ -4,6 +4,7 @@ import { Sun, Moon, Menu, X, Calendar } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import axios from 'axios';
+import Footer from '../../components/footer';
 
 export default function CreateEvent({ darkMode, toggleDarkMode }) {
   const navigate = useNavigate();
@@ -517,6 +518,8 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
           </div>
         </form>
       </div>
+      <Footer darkMode={darkMode} />
+
     </div>
   );
 }
