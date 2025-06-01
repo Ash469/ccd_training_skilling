@@ -85,7 +85,7 @@ export default function Login({ darkMode }) {
         setError(
           accountType === 'admin'
             ? 'This email is not authorized for admin access.'
-            : 'Your email is not authorized to access this portal. Please contact CCD for more information.'
+            : 'Your email has not been authorized to access the Training and Skilling Portal (CCD, IITG). Please contact ccd@iitg.ac.in'
         );
       }
     } catch (error) {
@@ -499,7 +499,7 @@ export default function Login({ darkMode }) {
                 : 'text-purple-600 hover:text-purple-700'
             }`}
           >
-            Contact ccd@iitg.ac.in and Register now
+            Contact ccd@iitg.ac.in
           </span>
         </p>
       </div>

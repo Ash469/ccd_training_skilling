@@ -12,13 +12,19 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
   const [sendEmail, setSendEmail] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [promotionLink, setPromotionLink] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  // Replace single date with start and end dates
+  const [selectedStartDate, setSelectedStartDate] = useState(new Date());
+  const [selectedEndDate, setSelectedEndDate] = useState(new Date());
+  const [useEndDate, setUseEndDate] = useState(false);
 
   // Form fields
   const [eventName, setEventName] = useState('');
   const [speaker, setSpeaker] = useState('');
   const [description, setDescription] = useState('');
-  const [time, setTime] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [useEndTime, setUseEndTime] = useState(false);
   const [venue, setVenue] = useState('');
   const [maxSeats, setMaxSeats] = useState('');
 
@@ -38,16 +44,22 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
         throw new Error('No authentication token found');
       }
 
-      // Format date as YYYY-MM-DD
-      const formattedDate = selectedDate.toISOString().split('T')[0];
+      // Format dates as YYYY-MM-DD
+      const formattedStartDate = selectedStartDate.toISOString().split('T')[0];
+      const formattedEndDate = useEndDate ? selectedEndDate.toISOString().split('T')[0] : null;
 
       // Create event data object
       const eventData = {
         eventName,
         speaker,
         description,
-        date: formattedDate,
-        time,
+        // Include both legacy and new fields for backward compatibility
+        date: formattedStartDate,
+        time: startTime,
+        startDate: formattedStartDate,
+        startTime: startTime,
+        endDate: formattedEndDate,
+        endTime: useEndTime ? endTime : null,
         venue,
         maxSeats: parseInt(maxSeats, 10),
         sendEmail,
@@ -391,7 +403,7 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 <label className={`block text-sm font-medium ${
                   darkMode ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  Date
+                  Start Date
                 </label>
                 <div className="relative flex items-center">
                   <div className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
@@ -400,8 +412,8 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                     <Calendar className="h-5 w-5" />
                   </div>
                   <DatePicker
-                    selected={selectedDate}
-                    onChange={date => setSelectedDate(date)}
+                    selected={selectedStartDate}
+                    onChange={date => setSelectedStartDate(date)}
                     minDate={minDate}
                     dateFormat="MMMM d, yyyy"
                     className={`w-full p-2 pl-10 rounded-lg border ${
@@ -422,15 +434,17 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className={`block text-sm font-medium ${
-                  darkMode ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  Time
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className={`block text-sm font-medium ${
+                    darkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Start Time
+                  </label>
+                </div>
                 <input
                   type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
                   required
                   className={`w-full p-2 rounded-lg border ${
                     darkMode 
@@ -439,6 +453,99 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
                   } focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
                 />
               </div>
+            </div>
+            
+            {/* End Date/Time Section */}
+            <div className="mt-4">
+              <div className="flex items-center gap-2 mb-4">
+                <input
+                  type="checkbox"
+                  id="useEndDate"
+                  checked={useEndDate}
+                  onChange={(e) => setUseEndDate(e.target.checked)}
+                  className={`w-4 h-4 text-purple-600 rounded focus:ring-purple-500`}
+                />
+                <label htmlFor="useEndDate" className={`text-sm font-medium ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Event spans multiple days
+                </label>
+              </div>
+
+              {useEndDate && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className={`block text-sm font-medium ${
+                      darkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      End Date
+                    </label>
+                    <div className="relative flex items-center">
+                      <div className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
+                        darkMode ? 'text-purple-400' : 'text-purple-600'
+                      }`}>
+                        <Calendar className="h-5 w-5" />
+                      </div>
+                      <DatePicker
+                        selected={selectedEndDate}
+                        onChange={date => setSelectedEndDate(date)}
+                        minDate={selectedStartDate}
+                        dateFormat="MMMM d, yyyy"
+                        className={`w-full p-2 pl-10 rounded-lg border ${
+                          darkMode 
+                            ? 'bg-gray-700 border-gray-600 text-white'
+                            : 'bg-white border-gray-300'
+                        } focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
+                        wrapperClassName="w-full"
+                        calendarClassName={datePickerClassName}
+                        popperClassName={datePickerWrapperClassName}
+                        renderCustomHeader={CustomDatePickerHeader}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex items-center gap-2 mb-4 mt-4">
+                <input
+                  type="checkbox"
+                  id="useEndTime"
+                  checked={useEndTime}
+                  onChange={(e) => setUseEndTime(e.target.checked)}
+                  className={`w-4 h-4 text-purple-600 rounded focus:ring-purple-500`}
+                />
+                <label htmlFor="useEndTime" className={`text-sm font-medium ${
+                  darkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  Specify end time
+                </label>
+              </div>
+              
+              {useEndTime && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className={`block text-sm font-medium ${
+                      darkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      End Time
+                    </label>
+                    <input
+                      type="time"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      required={useEndTime}
+                      className={`w-full p-2 rounded-lg border ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-white'
+                          : 'bg-white border-gray-300'
+                      } focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-2 mt-4">
               <div className="space-y-2">
                 <label className={`block text-sm font-medium ${
                   darkMode ? 'text-gray-300' : 'text-gray-700'

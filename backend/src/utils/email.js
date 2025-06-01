@@ -53,15 +53,42 @@ exports.sendEventNotificationEmails = async (eventDetails, users) => {
   try {
     console.log(`Preparing to send notifications to ${users.length} users`);
     
-   
+    const { eventName, date, time, venue, speaker, description, 
+            startDate, endDate, startTime, endTime } = eventDetails;
     
-    const { eventName, date, time, venue, speaker, description } = eventDetails;
-    const formattedDate = new Date(date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    // Format dates for display in email
+    const formatDateForEmail = (dateValue) => {
+      return new Date(dateValue).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    };
+    
+    // Use new date fields if available, fall back to legacy fields
+    const formattedStartDate = formatDateForEmail(startDate || date);
+    const formattedEndDate = endDate ? formatDateForEmail(endDate) : null;
+    
+    // Use new time fields if available, fall back to legacy fields
+    const displayStartTime = startTime || time;
+    const displayEndTime = endTime;
+    
+    // Format the time range for display
+    const getTimeDisplay = () => {
+      if (displayStartTime && displayEndTime) {
+        return `${displayStartTime} - ${displayEndTime}`;
+      }
+      return displayStartTime;
+    };
+    
+    // Format the date range for display
+    const getDateDisplay = () => {
+      if (formattedEndDate && formattedStartDate !== formattedEndDate) {
+        return `${formattedStartDate} - ${formattedEndDate}`;
+      }
+      return formattedStartDate;
+    };
 
     let successCount = 0;
     let errorCount = 0;
@@ -72,14 +99,14 @@ exports.sendEventNotificationEmails = async (eventDetails, users) => {
         const emailSubject = `New Event: ${eventName}`;
         const emailText = 
           `Hello ${user.fullName || 'Student'},\n\n` +
-          `A new event has been scheduled at IIT Guwahati and is now open for registration:\n\n` +
+          `A new event has been scheduled by Training and Skilling, CCD IIT Guwahati and is now open for registration:\n\n` +
           `Event: ${eventName}\n` +
-          `Date: ${formattedDate}\n` +
-          `Time: ${time}\n` +
+          `Date: ${getDateDisplay()}\n` +
+          `Time: ${getTimeDisplay()}\n` +
           `Venue: ${venue}\n` +
           `Speaker: ${speaker}\n\n` +
           `Description: ${description}\n\n` +
-          `You can register for this event through the Training and Skilling Portal at ${FRONTEND_URL}\n\n` +
+          `You can register for this event through the Training and Skilling Portal at https://ccd-training-skilling.vercel.app/\n\n` +
           `Regards,\n` +
           `Career & Competency Development Cell\n` +
           `IIT Guwahati`;
@@ -87,11 +114,11 @@ exports.sendEventNotificationEmails = async (eventDetails, users) => {
         const emailHtml = 
           `<div style="font-family: Arial, sans-serif; line-height: 1.6;">` +
           `<p>Hello ${user.fullName || 'Student'},</p>` +
-          `<p>A new event has been scheduled at IIT Guwahati and is now open for registration:</p>` +
+          `<p>A new event has been scheduled by Training and Skilling, CCD IIT Guwahati and is now open for registration:</p>` +
           `<div style="margin: 20px 0; padding: 15px; border-left: 4px solid #6366f1; background-color: #f3f4f6;">` +
           `<p><strong>Event:</strong> ${eventName}</p>` +
-          `<p><strong>Date:</strong> ${formattedDate}</p>` +
-          `<p><strong>Time:</strong> ${time}</p>` +
+          `<p><strong>Date:</strong> ${getDateDisplay()}</p>` +
+          `<p><strong>Time:</strong> ${getTimeDisplay()}</p>` +
           `<p><strong>Venue:</strong> ${venue}</p>` +
           `<p><strong>Speaker:</strong> ${speaker}</p>` +
           `</div>` +
@@ -139,13 +166,41 @@ exports.sendEventUpdateEmails = async (eventDetails, users, subject, message) =>
     // Get frontend URL from environment variables with fallback to production URL
     const FRONTEND_URL = process.env.FRONTEND_URL || process.env.PROD_FRONTEND_URL || 'https://ccd-training-skilling.vercel.app';
     
-    const { eventName, date, time, venue } = eventDetails;
-    const formattedDate = new Date(date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    const { eventName, date, time, venue, startDate, endDate, startTime, endTime } = eventDetails;
+    
+    // Format dates for display in email
+    const formatDateForEmail = (dateValue) => {
+      return new Date(dateValue).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    };
+    
+    // Use new date fields if available, fall back to legacy fields
+    const formattedStartDate = formatDateForEmail(startDate || date);
+    const formattedEndDate = endDate ? formatDateForEmail(endDate) : null;
+    
+    // Use new time fields if available, fall back to legacy fields
+    const displayStartTime = startTime || time;
+    const displayEndTime = endTime;
+    
+    // Format the time range for display
+    const getTimeDisplay = () => {
+      if (displayStartTime && displayEndTime) {
+        return `${displayStartTime} - ${displayEndTime}`;
+      }
+      return displayStartTime;
+    };
+    
+    // Format the date range for display
+    const getDateDisplay = () => {
+      if (formattedEndDate && formattedStartDate !== formattedEndDate) {
+        return `${formattedStartDate} - ${formattedEndDate}`;
+      }
+      return formattedStartDate;
+    };
 
     let successCount = 0;
     let errorCount = 0;
@@ -158,8 +213,8 @@ exports.sendEventUpdateEmails = async (eventDetails, users, subject, message) =>
           `Important update regarding the event "${eventName}":\n\n` +
           `${message}\n\n` +
           `Event details:\n` +
-          `Date: ${formattedDate}\n` +
-          `Time: ${time}\n` +
+          `Date: ${getDateDisplay()}\n` +
+          `Time: ${getTimeDisplay()}\n` +
           `Venue: ${venue}\n\n` +
           `For more information, please log in to the Training and Skilling Portal at ${FRONTEND_URL}\n\n` +
           `Regards,\n` +
@@ -175,11 +230,11 @@ exports.sendEventUpdateEmails = async (eventDetails, users, subject, message) =>
           `</div>` +
           `<div style="margin-top: 20px;">` +
           `<p><strong>Event details:</strong></p>` +
-          `<p>Date: ${formattedDate}<br>` +
-          `Time: ${time}<br>` +
+          `<p>Date: ${getDateDisplay()}<br>` +
+          `Time: ${getTimeDisplay()}<br>` +
           `Venue: ${venue}</p>` +
           `</div>` +
-          `<p>For more information, please log in to the <a href="https://ccd-training-skilling.vercel.app/">Training and Skilling Portal</a>.</p>` +
+          `<p>For more information, please log in to the <a href="${FRONTEND_URL}">Training and Skilling Portal</a>.</p>` +
           `<p>Regards,<br>` +
           `Career & Competency Development Cell<br>` +
           `IIT Guwahati</p>` +

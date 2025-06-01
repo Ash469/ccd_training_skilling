@@ -15,6 +15,7 @@ const eventSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Legacy fields - maintain for backward compatibility
   date: {
     type: Date,
     required: true,
@@ -34,6 +35,39 @@ const eventSchema = new mongoose.Schema({
   time: {
     type: String,
     required: true
+  },
+  // New fields for better time management
+  startDate: {
+    type: Date,
+    validate: {
+      validator: function(value) {
+        if (this.isNew && value) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return value >= today;
+        }
+        return true;
+      },
+      message: 'Start date must be a future date'
+    }
+  },
+  endDate: {
+    type: Date,
+    validate: {
+      validator: function(value) {
+        if (this.startDate && value) {
+          return value >= this.startDate;
+        }
+        return true;
+      },
+      message: 'End date must be after or equal to start date'
+    }
+  },
+  startTime: {
+    type: String
+  },
+  endTime: {
+    type: String
   },
   venue: {
     type: String,

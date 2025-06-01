@@ -13,6 +13,10 @@ const createEvent = async (req, res) => {
       description,
       date,
       time,
+      startDate,
+      endDate,
+      startTime,
+      endTime,
       venue,
       maxSeats,
       sendEmail,
@@ -27,7 +31,7 @@ const createEvent = async (req, res) => {
     }
 
     // Validate required fields
-    if (!eventName || !speaker || !description || !date || !time || !venue || !maxSeats) {
+    if (!eventName || !speaker || !description || !venue || !maxSeats) {
       return res.status(400).json({
         success: false,
         message: 'All required fields must be provided',
@@ -35,16 +39,25 @@ const createEvent = async (req, res) => {
           eventName: !eventName,
           speaker: !speaker,
           description: !description,
-          date: !date,
-          time: !time,
           venue: !venue,
           maxSeats: !maxSeats
         }
       });
     }
 
-    // Validate that the date is not in the past
-    const eventDate = new Date(date);
+    // Validate that we have either legacy date/time or new date/time fields
+    const hasLegacyDateTime = date && time;
+    const hasNewDateTime = startDate && startTime;
+    
+    if (!hasLegacyDateTime && !hasNewDateTime) {
+      return res.status(400).json({
+        success: false,
+        message: 'Event must have either date and time, or startDate and startTime'
+      });
+    }
+
+    // Use startDate or date for validation
+    const eventDate = new Date(startDate || date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -80,8 +93,13 @@ const createEvent = async (req, res) => {
       eventName,
       speaker,
       description,
-      date: eventDate,
-      time,
+      date: eventDate, // Set the legacy date field
+      time: time || startTime, // Set the legacy time field
+      // Set new fields if provided
+      startDate: startDate ? new Date(startDate) : eventDate,
+      endDate: endDate ? new Date(endDate) : null,
+      startTime: startTime || time,
+      endTime: endTime || null,
       venue,
       maxSeats: Number(maxSeats),
       promotionLink,
@@ -107,7 +125,12 @@ const createEvent = async (req, res) => {
             description,
             date: eventDate,
             time,
-            venue
+            venue,
+            // Add new date/time fields
+            startDate,
+            endDate,
+            startTime,
+            endTime
           }, users);
         } else {
           console.log('No users found to send email notifications');
@@ -180,7 +203,7 @@ const getUpcomingEvents = asyncHandler(async (req, res) => {
         status: 'upcoming'
        
     })
-    .sort({ date: 1 }) // Sort by date in ascending order
+    .sort({ startDate: 1, date: 1 }) // Sort by startDate first, then legacy date
     .select('-registeredRollNumbers -createdBy -__v'); // Exclude sensitive fields
 
     const formattedEvents = events.map(event => ({
@@ -189,6 +212,10 @@ const getUpcomingEvents = asyncHandler(async (req, res) => {
         description: event.description,
         date: event.date,
         time: event.time,
+        startDate: event.startDate || event.date,
+        endDate: event.endDate,
+        startTime: event.startTime || event.time,
+        endTime: event.endTime,
         speaker: event.speaker,
         venue: event.venue,
         maxSeats: event.maxSeats,

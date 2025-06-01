@@ -258,6 +258,28 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
         }
     };
 
+    const formatEventDateRange = (event) => {
+        const startDate = event.startDate || event.date;
+        const endDate = event.endDate;
+        
+        if (endDate && new Date(startDate).toDateString() !== new Date(endDate).toDateString()) {
+            return `${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`;
+        }
+        
+        return new Date(startDate).toLocaleDateString();
+    };
+
+    const formatEventTimeRange = (event) => {
+        const startTime = event.startTime || event.time;
+        const endTime = event.endTime;
+        
+        if (endTime) {
+            return `${startTime} - ${endTime}`;
+        }
+        
+        return startTime;
+    };
+
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
@@ -519,11 +541,11 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
                                         <div className="space-y-3">
                                             <div className={`flex items-center ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                                 <FontAwesomeIcon icon={faCalendar} className="w-4 h-4 mr-2" />
-                                                {new Date(event.date).toLocaleDateString()}
+                                                {formatEventDateRange(event)}
                                             </div>
                                             <div className={`flex items-center ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                                 <FontAwesomeIcon icon={faClock} className="w-4 h-4 mr-2" />
-                                                {event.time}
+                                                {formatEventTimeRange(event)}
                                             </div>
                                             <div className={`flex items-center ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                                                 <FontAwesomeIcon icon={faUser} className="w-4 h-4 mr-2" />

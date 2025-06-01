@@ -128,9 +128,11 @@ const getUserProfileById = asyncHandler(async (req, res) => {
       department: user.department,
       hostel: user.hostel,
       address: user.address,
+      pincode: user.pincode,
       mobileNumber: user.mobileNumber,
       alternateMail: user.alternateMail,
-      course: user.course,
+      programme: user.programme,
+      specialization: user.specialization,
       isProfileComplete: user.isProfileComplete,
       registeredEvents: registeredEvents.length,
       upcomingEvents: upcomingEvents.length,
@@ -153,7 +155,75 @@ const getUserProfileById = asyncHandler(async (req, res) => {
 // @route   PUT /api/users/profile
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
-  // ...existing code...
+  try {
+    const user = await User.findById(req.user._id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Update user fields
+    const { 
+      department, 
+      hostel, 
+      address, 
+      pincode, 
+      mobileNumber, 
+      alternateMail, 
+      programme, 
+      specialization 
+    } = req.body;
+    
+    // Update fields if provided
+    if (department) user.department = department;
+    if (hostel) user.hostel = hostel;
+    if (address) user.address = address;
+    if (pincode) user.pincode = pincode;
+    if (mobileNumber) user.mobileNumber = mobileNumber;
+    if (alternateMail) user.alternateMail = alternateMail;
+    if (programme) user.programme = programme;
+    if (specialization) user.specialization = specialization;
+    
+    // Check if profile is complete (minimum required fields)
+    if (department && hostel && mobileNumber && programme) {
+      user.isProfileComplete = true;
+    }
+    
+    // Save updated user
+    const updatedUser = await user.save();
+    
+    // Create response object with updated data
+    const responseObj = {
+      _id: updatedUser._id,
+      fullName: updatedUser.fullName,
+      email: updatedUser.email,
+      rollNumber: updatedUser.rollNumber,
+      department: updatedUser.department,
+      hostel: updatedUser.hostel,
+      address: updatedUser.address,
+      pincode: updatedUser.pincode,
+      mobileNumber: updatedUser.mobileNumber,
+      alternateMail: updatedUser.alternateMail,
+      programme: updatedUser.programme,
+      specialization: updatedUser.specialization,
+      isProfileComplete: updatedUser.isProfileComplete
+    };
+    
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: responseObj
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error updating profile',
+      error: error.message
+    });
+  }
 });
 
 // @desc    Get all users

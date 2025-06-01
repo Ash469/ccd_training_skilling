@@ -31,7 +31,8 @@ export default function Profile({ darkMode, toggleDarkMode }) {
           setUserProfile(response.data);
           setLoading(false);
           return;
-        } catch (directErr) {
+        // eslint-disable-next-line no-unused-vars
+        } catch (error) {
           // Silently fall back to standard route
         }
         
@@ -323,9 +324,9 @@ export default function Profile({ darkMode, toggleDarkMode }) {
                   <div>
                     <p className={`text-sm ${
                       darkMode ? 'text-gray-400' : 'text-gray-600'
-                    }`}>Course</p>
+                    }`}>Programme</p>
                     <p className="font-medium">
-                      {userProfile.course ? userProfile.course : 'Not specified'}
+                      {userProfile.programme ? userProfile.programme : 'Not specified'}
                     </p>
                   </div>
                 </div>

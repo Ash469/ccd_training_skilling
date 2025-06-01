@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
     sparse: true,
     unique: true
   },
-  // New fields
+  // Updated fields
   department: {
     type: String
   },
@@ -37,13 +37,19 @@ const userSchema = new mongoose.Schema({
   address: {
     type: String
   },
+  pincode: {
+    type: String
+  },
   mobileNumber: {
     type: String
   },
   alternateMail: {
     type: String
   },
-  course: {
+  programme: {
+    type: String
+  },
+  specialization: {
     type: String
   },
   isProfileComplete: {

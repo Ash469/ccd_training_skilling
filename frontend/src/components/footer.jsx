@@ -75,7 +75,7 @@ const Footer = ({ darkMode }) => {
                 </li>
                 <li>
                   <a
-                    href="https://iitg.ac.in/intern/auth/login/recruiter"
+                    href="https://iitg.ac.in/intern/auth/login"
                     className="hover:underline"
                     target="_blank"
                     rel="noopener noreferrer"

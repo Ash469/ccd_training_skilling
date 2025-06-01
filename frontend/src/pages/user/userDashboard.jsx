@@ -163,6 +163,39 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
         }, 3000);
     };
 
+    // Fix the formatEventDateRange function
+    const formatEventDateRange = (event) => {
+        const startDate = event.startDate || event.date;
+        const endDate = event.endDate;
+        
+        const formatDate = (date) => {
+            return new Date(date).toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric"
+            });
+        };
+        
+        // Fix the condition to correctly check if dates are different
+        if (endDate && new Date(startDate).toDateString() !== new Date(endDate).toDateString()) {
+            return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+        }
+        
+        return formatDate(startDate);
+    };
+
+    const formatEventTimeRange = (event) => {
+        const startTime = event.startTime || event.time;
+        const endTime = event.endTime;
+        
+        if (endTime) {
+            return `${startTime} - ${endTime}`;
+        }
+        
+        return startTime;
+    };
+
     if (loading) {
         return (
             <div className={`min-h-screen flex items-center justify-center ${
@@ -431,12 +464,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                             darkMode ? 'text-purple-400' : 'text-purple-500'
                                         }`} />
                                         <span className="font-medium">
-                                            {new Date(event.date).toLocaleDateString("en-US", {
-                                                weekday: "long",
-                                                year: "numeric",
-                                                month: "long",
-                                                day: "numeric"
-                                            })}
+                                            {formatEventDateRange(event)}
                                         </span>
                                     </div>
                                     <div className={`flex items-center ${
@@ -445,7 +473,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                         <Clock className={`h-5 w-5 mr-3 ${
                                             darkMode ? 'text-purple-400' : 'text-purple-500'
                                         }`} />
-                                        <span className="font-medium">{event.time}</span>
+                                        <span className="font-medium">{formatEventTimeRange(event)}</span>
                                     </div>
                                     <div className={`flex items-center ${
                                         darkMode ? 'text-gray-300' : 'text-gray-700'
