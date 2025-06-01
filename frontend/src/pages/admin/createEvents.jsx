@@ -59,7 +59,7 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
       }
 
       console.log('Submitting event data:', eventData);
-  
+
       const response = await axios.post(
         `${API_BASE_URL}/api/events/create`, 
         eventData, 
@@ -70,16 +70,26 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
           }
         }
       );
-  
+
       console.log('Event creation response:', response.data);
       
       if (response.data && response.data.success) {
-        alert('Event created successfully!');
+        let message = 'Event created successfully!';
+        
+        // Add information about email notifications if available
+        if (response.data.emailNotification) {
+          message += ` Email notifications sent to ${response.data.emailNotification.sent} users`;
+          if (response.data.emailNotification.failed > 0) {
+            message += ` (${response.data.emailNotification.failed} failed)`;
+          }
+        }
+        
+        alert(message);
         navigate('/admin/dashboard');
       } else {
         throw new Error(response.data?.message || 'Unknown error occurred');
       }
-  
+
     } catch (error) {
       console.error('Error creating event:', error);
       console.error('Response data:', error.response?.data);

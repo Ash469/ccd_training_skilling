@@ -109,11 +109,13 @@ exports.login = async (req, res) => {
     const userResponse = user.toObject();
     delete userResponse.password;
 
+    // Make sure role is included in the response data object directly
+    userResponse.role = role;
+
     res.status(200).json({
       success: true,
       data: {
         ...userResponse,
-        role,
         token
       }
     });

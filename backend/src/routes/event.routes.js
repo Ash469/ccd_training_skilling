@@ -16,6 +16,7 @@ const {
 const { protect, admin } = require('../middleware/auth.middleware');
 const User = require('../models/user.model');
 const Event = require('../models/event.model');
+const { sendEventUpdateEmails } = require('../utils/email');
 
 // Configure multer for attendance uploads (CSV)
 const csvStorage = multer.memoryStorage();
@@ -213,5 +214,63 @@ router.post('/:id/attendance', protect, admin, csvUpload.single('attendanceFile'
 
 // Get event attendance details
 router.get('/:id/attendance', protect, admin, getEventAttendance);
+
+// Send notification to all registered users for an event
+router.post('/:id/send-notification', protect, admin, async (req, res) => {
+  try {
+    const { subject, message } = req.body;
+    
+    // Find the event to verify it exists and get registered users
+    const event = await Event.findById(req.params.id);
+    
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found'
+      });
+    }
+    
+    // Get all registered users
+    const registeredUsers = await User.find({
+      rollNumber: { $in: event.registeredRollNumbers }
+    }).select('email fullName');
+    
+    if (registeredUsers.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No registered users found for this event',
+        sentCount: 0
+      });
+    }
+    
+    // Use the email utility to send notifications
+    const emailResult = await sendEventUpdateEmails(
+      {
+        eventName: event.eventName,
+        date: event.date,
+        time: event.time,
+        venue: event.venue
+      },
+      registeredUsers,
+      subject,
+      message
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: 'Notifications sent successfully',
+      sentCount: emailResult.successCount,
+      failCount: emailResult.errorCount
+    });
+    
+  } catch (error) {
+    console.error('Error sending notifications:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error sending notifications',
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;

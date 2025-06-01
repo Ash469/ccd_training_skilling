@@ -108,6 +108,8 @@ export default function Login({ darkMode }) {
     setError('');
     
     try {
+      console.log('Login attempt:', { email, accountType });
+      
       const response = await axios.post(`${API_BASE_URL}/api/login`, {
         email: email.toLowerCase(),
         password,
@@ -115,16 +117,36 @@ export default function Login({ darkMode }) {
       });
       
       if (response.data.success) {
-        const { token, role } = response.data.data;
+        const { token } = response.data.data;
+        const userData = response.data.data;
         
         // Clear any previous data
         localStorage.clear();
         
+        // Store token and role explicitly 
         localStorage.setItem('token', token);
-        localStorage.setItem('userRole', role);
-        localStorage.setItem('userData', JSON.stringify(response.data.data));
+        localStorage.setItem('userRole', userData.role);
+        localStorage.setItem('userData', JSON.stringify(userData));
         
-        navigate('/admin/dashboard');
+        // Log the stored data for debugging
+        console.log('Authentication successful:', {
+          token: token.substring(0, 10) + '...',
+          role: userData.role,
+          userData: JSON.stringify(userData).substring(0, 100) + '...'
+        });
+        
+        // Add a small delay to ensure localStorage is updated before redirect
+        setTimeout(() => {
+          if (userData.role === 'admin') {
+            navigate('/admin/dashboard');
+          } else {
+            if (!userData.isProfileComplete) {
+              navigate('/user/complete-profile');
+            } else {
+              navigate('/user/dashboard');
+            }
+          }
+        }, 100);
       }
     } catch (error) {
       console.error('Login error:', error);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {faEdit,faTrash,faSun,faMoon,faCalendar,faClock,faUser,faLocationDot,faUsers,faPlus,faBars,faTimes} from '@fortawesome/free-solid-svg-icons';
+import {faEdit,faTrash,faSun,faMoon,faCalendar,faClock,faUser,faLocationDot,faUsers,faPlus,faBars,faTimes,faBell} from '@fortawesome/free-solid-svg-icons';
 import ErrorFallback from '../../components/ErrorFallback';
 import Footer from '../../components/footer';
 
@@ -19,6 +19,12 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
     const [cancellationSettings, setCancellationSettings] = useState({
         isCancellationAllowed: false
     });
+    const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+    const [notificationSubject, setNotificationSubject] = useState('');
+    const [notificationMessage, setNotificationMessage] = useState('');
+    const [isSendingNotification, setIsSendingNotification] = useState(false);
+    const [notificationStatus, setNotificationStatus] = useState(null);
+    const [selectedEventForNotification, setSelectedEventForNotification] = useState(null);
     
     const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
     
@@ -191,6 +197,65 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
             isCancellationAllowed: event.isCancellationAllowed || false
         });
         setIsCancellationModalOpen(true);
+    };
+
+    const openNotificationModal = (event) => {
+        setSelectedEventForNotification(event);
+        // Pre-fill subject with event name
+        setNotificationSubject(`Update regarding ${event.name}`);
+        setNotificationMessage('');
+        setNotificationStatus(null);
+        setIsNotificationModalOpen(true);
+    };
+
+    const handleSendNotification = async () => {
+        if (!notificationSubject || !notificationMessage) {
+            setNotificationStatus({
+                success: false,
+                message: 'Please provide both subject and message'
+            });
+            return;
+        }
+
+        try {
+            setIsSendingNotification(true);
+            setNotificationStatus(null);
+            
+            const token = localStorage.getItem('token');
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+            
+            const eventDetails = {
+                eventId: selectedEventForNotification.id,
+                eventName: selectedEventForNotification.name,
+                subject: notificationSubject,
+                message: notificationMessage
+            };
+            
+            const response = await axios.post(
+                `${API_BASE_URL}/api/events/${selectedEventForNotification.id}/send-notification`,
+                eventDetails,
+                config
+            );
+            
+            setNotificationStatus({
+                success: true,
+                message: `Notification sent successfully to ${response.data.sentCount} registered users`
+            });
+            
+        } catch (err) {
+            console.error('Error sending notification:', err);
+            setNotificationStatus({
+                success: false,
+                message: err.response?.data?.message || 'Failed to send notification'
+            });
+        } finally {
+            setIsSendingNotification(false);
+        }
     };
 
     if (loading) {
@@ -509,10 +574,14 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
                                     >
                                         Cancellation Settings
                                     </button>
-                                    <button className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${darkMode
+                                    <button 
+                                        onClick={() => openNotificationModal(event)}
+                                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${darkMode
                                             ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                             : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
-                                        }`}>
+                                        }`}
+                                    >
+                                        <FontAwesomeIcon icon={faBell} />
                                         Send Update
                                     </button>
                                 </div>
@@ -632,6 +701,98 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
                                 className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
                             >
                                 Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Notification modal */}
+            {isNotificationModalOpen && selectedEventForNotification && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className={`${
+                        darkMode ? 'bg-gray-800' : 'bg-white'
+                    } rounded-lg p-6 w-full max-w-md mx-4 shadow-xl`}>
+                        <h3 className={`text-lg font-semibold mb-4 ${
+                            darkMode ? 'text-white' : 'text-gray-900'
+                        }`}>
+                            Send Update for {selectedEventForNotification.name}
+                        </h3>
+                        
+                        {notificationStatus && (
+                            <div className={`p-3 mb-4 rounded-lg ${
+                                notificationStatus.success 
+                                    ? darkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'
+                                    : darkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-800'
+                            }`}>
+                                {notificationStatus.message}
+                            </div>
+                        )}
+                        
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className={`block text-sm font-medium ${
+                                    darkMode ? 'text-gray-300' : 'text-gray-700'
+                                }`}>
+                                    Subject
+                                </label>
+                                <input
+                                    type="text"
+                                    value={notificationSubject}
+                                    onChange={(e) => setNotificationSubject(e.target.value)}
+                                    className={`w-full p-2 rounded-lg border ${
+                                        darkMode 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    }`}
+                                    placeholder="Enter email subject"
+                                />
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <label className={`block text-sm font-medium ${
+                                    darkMode ? 'text-gray-300' : 'text-gray-700'
+                                }`}>
+                                    Message
+                                </label>
+                                <textarea
+                                    value={notificationMessage}
+                                    onChange={(e) => setNotificationMessage(e.target.value)}
+                                    rows="5"
+                                    className={`w-full p-2 rounded-lg border ${
+                                        darkMode 
+                                            ? 'bg-gray-700 border-gray-600 text-white' 
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                    }`}
+                                    placeholder="Enter notification message"
+                                ></textarea>
+                                <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    This message will be sent to all users registered for this event.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex justify-end gap-2 mt-6">
+                            <button
+                                onClick={() => setIsNotificationModalOpen(false)}
+                                className={`px-4 py-2 rounded ${
+                                    darkMode
+                                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                                }`}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSendNotification}
+                                disabled={isSendingNotification}
+                                className={`px-4 py-2 rounded flex items-center gap-2 ${
+                                    darkMode
+                                        ? 'bg-purple-600 text-white hover:bg-purple-700'
+                                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                                } ${isSendingNotification ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            >
+                                {isSendingNotification ? 'Sending...' : 'Send Notification'}
                             </button>
                         </div>
                     </div>

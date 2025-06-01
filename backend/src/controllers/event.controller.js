@@ -3,6 +3,7 @@ const User = require('../models/user.model');
 const asyncHandler = require('express-async-handler');
 const csv = require('csv-parser');
 const { Readable } = require('stream');
+const { sendEventNotificationEmails } = require('../utils/email');
 
 const createEvent = async (req, res) => {
   try {
@@ -91,15 +92,40 @@ const createEvent = async (req, res) => {
     // Save event to database
     const savedEvent = await event.save();
 
-    // If sendEmail is true, you can implement email notification logic here
+    // If sendEmail is true, implement email notification system
+    let emailResult = null;
     if (sendEmail === true) {
-      // TODO: Implement email notification system
+      try {
+        // Fetch all users to send notification emails
+        const users = await User.find().select('email fullName');
+        
+        if (users.length > 0) {
+          // Send emails in the background without blocking response
+          emailResult = await sendEventNotificationEmails({
+            eventName,
+            speaker, 
+            description,
+            date: eventDate,
+            time,
+            venue
+          }, users);
+        } else {
+          console.log('No users found to send email notifications');
+        }
+      } catch (emailError) {
+        console.error('Failed to send email notifications:', emailError);
+        // Don't fail the event creation if email sending fails
+      }
     }
 
     res.status(201).json({
       success: true,
       message: 'Event created successfully',
-      data: savedEvent
+      data: savedEvent,
+      emailNotification: emailResult ? {
+        sent: emailResult.successCount,
+        failed: emailResult.errorCount
+      } : null
     });
   } catch (error) {
     console.error('Event creation error:', error);
