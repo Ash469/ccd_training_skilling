@@ -75,12 +75,23 @@ exports.sendEventNotificationEmails = async (eventDetails, users) => {
     const displayEndTime = endTime;
     
     // Format the time range for display
+    // const getTimeDisplay = () => {
+    //   if (displayStartTime && displayEndTime) {
+    //     return `${displayStartTime} - ${displayEndTime}`;
+    //   }
+    //   return displayStartTime;
+    // };
+
     const getTimeDisplay = () => {
-      if (displayStartTime && displayEndTime) {
-        return `${displayStartTime} - ${displayEndTime}`;
+      if (displayStartTime && displayEndTime && formattedEndDate && formattedStartDate) {
+        return `${formattedStartDate} at ${displayStartTime} - ${formattedEndDate} at ${displayEndTime}`;
       }
-      return displayStartTime;
+      if (displayStartTime && formattedStartDate) {
+        return `${formattedStartDate} at ${displayStartTime}`;
+      }
+      return displayStartTime || '';
     };
+
     
     // Format the date range for display
     const getDateDisplay = () => {
