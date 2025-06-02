@@ -162,7 +162,8 @@ export default function CompleteProfile({ darkMode, toggleDarkMode }) {
     "Dhansiri",
     "Disang",
     "Married Scholar",
-    "Non-Resident"
+    "Non-Resident",
+    "Gaurang"
   ];
 
   return (
