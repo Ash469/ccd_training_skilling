@@ -224,6 +224,18 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
         );
     }
 
+    if (events.length === 0) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${
+        darkMode ? 'bg-gray-900 text-gray-300' : 'bg-gray-50 text-gray-700'
+      }`}>
+        <p className="text-lg font-medium text-center px-4">
+          No events, once there is an event it will show here.
+        </p>
+      </div>
+    );
+  }
+
     return (
         <div className={`min-h-screen transition-colors duration-200 ${
             darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'
