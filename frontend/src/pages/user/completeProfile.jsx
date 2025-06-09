@@ -143,6 +143,7 @@ export default function CompleteProfile({ darkMode, toggleDarkMode }) {
     "Centre for Sustainable Polymers",
     "Centre for Disaster Management and Research",
     "School of Data Science and Artificial Intelligence",
+    "CICPS",
     "Other"
   ];
 
