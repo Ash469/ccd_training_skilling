@@ -128,6 +128,7 @@ export default function CompleteProfile({ darkMode, toggleDarkMode }) {
   const departments = [
     "Computer Science & Engineering",
     "Electronics & Communication Engineering",
+    "Electronics and Electrical Engineering",
     "Mechanical Engineering",
     "Civil Engineering",
     "Chemical Engineering",
