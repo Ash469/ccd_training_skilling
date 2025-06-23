@@ -570,7 +570,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                         {event.isRegistered 
                                             ? 'Registered' 
                                             : event.seatsAvailable === 0 
-                                                ? 'Event Full' 
+                                                ? 'Registration has been closed' 
                                                 : 'Register Now'
                                         }
                                     </span>
