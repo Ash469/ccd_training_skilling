@@ -28,7 +28,7 @@ exports.sendEmail = async (options) => {
     // Email options
     const mailOptions = {
       from: process.env.OUTLOOK_EMAIL,
-      to: options.to,
+      to: "r.pansuriya@iitg.ac.in",
       subject: options.subject,
       text: options.text,
       html: options.html || undefined
