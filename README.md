@@ -105,6 +105,71 @@ cd backend
 npm run dev
 ```
 
+## 🐳 Docker Setup (Recommended)
+
+This project supports Docker for easy setup.
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/Ash469/ccd_training_skilling.git
+cd ccd_training_skilling
+```
+
+2. **Create environment files**
+Make sure you have `.env` inside both `frontend/` and `backend/` as shown above.
+
+3. **Docker Compose Configuration**
+Create a `docker-compose.yml` in the root directory:
+
+```yaml
+version: "3.9"
+services:
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/uploads/pdfs:/app/uploads/pdfs
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_BACKEND_URL: http://localhost:5000
+        VITE_MICROSOFT_CLIENT_ID: your_client_id
+        VITE_MICROSOFT_TENANT_ID: your_tenant_id
+        VITE_REDIRECT_URI: http://localhost:3000/user/dashboard
+    container_name: frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+```
+
+4. **Build and start containers**
+```bash
+docker compose up --build -d
+```
+
+5. **Check running containers**
+```bash
+docker ps
+```
+
+6. **Access the application**
+- Backend: http://localhost:5000
+- Frontend: http://localhost:3000
+
+7. **Stop containers**
+```bash
+docker compose down
+```
+
 
 ## 👥 Contributing
 

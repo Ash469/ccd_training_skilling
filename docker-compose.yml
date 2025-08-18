@@ -15,10 +15,10 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_BACKEND_URL: http://localhost:5000
-        VITE_MICROSOFT_CLIENT_ID: 1980db6d-8d4a-460d-9629-3b3975d9c13e
-        VITE_MICROSOFT_TENANT_ID: 850aa78d-94e1-4bc6-9cf3-8c11b530701c
-        VITE_REDIRECT_URI: http://localhost:3000/user/dashboard
+        VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+        VITE_MICROSOFT_CLIENT_ID: ${VITE_MICROSOFT_CLIENT_ID}
+        VITE_MICROSOFT_TENANT_ID: ${VITE_MICROSOFT_TENANT_ID}
+        VITE_REDIRECT_URI: ${VITE_REDIRECT_URI}
     container_name: frontend
     ports:
       - "3000:80"
