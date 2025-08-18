@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
@@ -7,7 +9,7 @@ const eventRoutes = require('./routes/event.routes');
 const userRoutes = require('./routes/user.routes');
 const sendEmailRoutes = require('./routes/sendEmail.routes');
 
-require('dotenv').config();
+
 
 const app = express();
 

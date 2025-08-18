@@ -402,39 +402,60 @@ exports.addAllowedUser = async (req, res) => {
   try {
     const { email } = req.body;
     
-    if (!email) {
+    // Handle both single email and array of emails
+    const emails = Array.isArray(email) ? email : [email];
+    
+    if (!emails.length) {
       return res.status(400).json({
         success: false,
-        message: 'Email is required'
+        message: 'At least one email is required'
       });
     }
     
-    // Check if already exists
-    let allowedUser = await AllowedUser.findOne({ email: email.toLowerCase() });
+    const results = [];
+    const errors = [];
     
-    if (allowedUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email already added to allowed users'
-      });
+    // Process each email
+    for (const singleEmail of emails) {
+      try {
+        if (!singleEmail) continue;
+        
+        // Check if already exists
+        let allowedUser = await AllowedUser.findOne({ email: singleEmail.toLowerCase() });
+        
+        if (allowedUser) {
+          errors.push({
+            email: singleEmail,
+            message: 'Email already added to allowed users'
+          });
+          continue;
+        }
+        
+        allowedUser = new AllowedUser({
+          email: singleEmail.toLowerCase()
+        });
+        
+        await allowedUser.save();
+        results.push(allowedUser);
+      } catch (emailError) {
+        errors.push({
+          email: singleEmail,
+          message: emailError.message
+        });
+      }
     }
-    
-    allowedUser = new AllowedUser({
-      email: email.toLowerCase()
-    });
-    
-    await allowedUser.save();
     
     return res.status(201).json({
       success: true,
-      message: 'User added to allowed list successfully',
-      data: allowedUser
+      message: `${results.length} users added to allowed list successfully`,
+      data: results,
+      errors: errors.length ? errors : undefined
     });
   } catch (error) {
     console.error('Add allowed user error:', error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'An error occurred while adding user to allowed list'
+      message: error.message || 'An error occurred while adding users to allowed list'
     });
   }
 };
