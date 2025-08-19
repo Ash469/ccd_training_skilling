@@ -550,7 +550,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                             ? darkMode
                                                 ? 'bg-green-500/20 text-green-400 cursor-default'
                                                 : 'bg-green-50 text-green-600 cursor-default border border-green-200'
-                                            : (event.seatsAvailable === 0 || (event.name == "LEAP" && user.programme != "B.Tech"))
+                                            : (event.seatsAvailable === 0)
                                                 ? darkMode
                                                     ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                                                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
