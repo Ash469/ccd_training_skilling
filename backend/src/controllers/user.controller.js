@@ -57,9 +57,6 @@ const getUserProfile = asyncHandler(async (req, res) => {
     const responseObj = {
       ...userObject,
       registeredEvents: registeredEvents.length,
-      upcomingEvents: upcomingEvents.length,
-      completedEvents: completedEvents.length,
-      // Explicitly include all fields to ensure they're included
       studentId: user.rollNumber,
       joinedDate: user.createdAt,
       programme: user.programme

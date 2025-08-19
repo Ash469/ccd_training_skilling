@@ -8,6 +8,11 @@ const allowedUserSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
+  phase: {
+    type: String,
+    enum: ['phase1', 'phase2'], 
+    default: 'phase1'
+  },
   addedAt: {
     type: Date,
     default: Date.now

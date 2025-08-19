@@ -106,11 +106,12 @@ exports.login = async (req, res) => {
     );
 
     // Remove password from response
-    const userResponse = user.toObject();
+    const userResponse = user;
     delete userResponse.password;
 
     // Make sure role is included in the response data object directly
     userResponse.role = role;
+    userResponse.programme = user.programme || "Not Specified";
 
     res.status(200).json({
       success: true,
@@ -144,16 +145,6 @@ exports.getProfile = async (req, res) => {
         $group: {
           _id: null,
           registeredEvents: { $sum: 1 },
-          upcomingEvents: {
-            $sum: {
-              $cond: [{ $gt: ['$date', new Date()] }, 1, 0]
-            }
-          },
-          completedEvents: {
-            $sum: {
-              $cond: [{ $lt: ['$date', new Date()] }, 1, 0]
-            }
-          }
         }
       }
     ]);
@@ -164,8 +155,7 @@ exports.getProfile = async (req, res) => {
       studentId: user.rollNumber,
       joinedDate: user.createdAt,
       registeredEvents: stats[0]?.registeredEvents || 0,
-      upcomingEvents: stats[0]?.upcomingEvents || 0,
-      completedEvents: stats[0]?.completedEvents || 0
+      programme: user.programme || "Not Specified"
     };
 
     res.json(userProfile);
@@ -386,7 +376,8 @@ exports.microsoftAuth = async (req, res) => {
         fullName: user.fullName,
         email: user.email,
         rollNumber: user.rollNumber,
-        isProfileComplete: user.isProfileComplete
+        isProfileComplete: user.isProfileComplete,
+        programme: user.programme || "Not Specified"
       }
     });
   } catch (error) {
@@ -400,8 +391,8 @@ exports.microsoftAuth = async (req, res) => {
 
 exports.addAllowedUser = async (req, res) => {
   try {
-    const { email } = req.body;
-    
+    const { email, phase } = req.body;
+
     // Handle both single email and array of emails
     const emails = Array.isArray(email) ? email : [email];
     
@@ -432,7 +423,8 @@ exports.addAllowedUser = async (req, res) => {
         }
         
         allowedUser = new AllowedUser({
-          email: singleEmail.toLowerCase()
+          email: singleEmail.toLowerCase(),
+          phase: phase
         });
         
         await allowedUser.save();

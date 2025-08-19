@@ -119,7 +119,8 @@ export default function Login({ darkMode }) {
       if (response.data.success) {
         const { token } = response.data.data;
         const userData = response.data.data;
-        
+        const programme = userData.programme || "not specified";
+
         // Clear any previous data
         localStorage.clear();
         
@@ -127,6 +128,7 @@ export default function Login({ darkMode }) {
         localStorage.setItem('token', token);
         localStorage.setItem('userRole', userData.role);
         localStorage.setItem('userData', JSON.stringify(userData));
+        localStorage.setItem('programme', programme);
         
         // Log the stored data for debugging
         console.log('Authentication successful:', {
