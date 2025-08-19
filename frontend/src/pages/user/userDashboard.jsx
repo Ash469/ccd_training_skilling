@@ -539,7 +539,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                         disabled={
                                             event.seatsAvailable === 0 ||
                                             event.isRegistered ||
-                                            (event.name === "LEAP" && user.programme !== "B.Tech")
+                                            (event.eventName === "LEAP" && user.programme !== "B.Tech")
                                           }
                                           
                                     className={`w-full py-3 px-4 rounded-lg font-medium shadow-sm transition-all duration-300 flex items-center justify-center gap-2 group
