@@ -30,6 +30,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                 
                 // Get user profile data first to access registered event IDs
                 const userProfileResponse = await axios.get(`${API_BASE_URL}/api/users/profile`, config);
+                console.log("userfetched is::: ", userProfileResponse.data);
                 setUser(userProfileResponse.data);
                 const registeredEventsResponse = await axios.get(`${API_BASE_URL}/api/events/user/registered`, config);
                 // console.log('Registered events response:', registeredEventsResponse.data);
@@ -539,11 +540,13 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                     onClick={() => event.seatsAvailable > 0 && !event.isRegistered ? 
                                         handleRegisterClick(event._id || event.id) : 
                                         null}
-                                        disabled={
-                                            event.seatsAvailable === 0 ||
-                                            event.isRegistered ||
-                                            (event.name == "LEAP" && user.programme != "B.Tech")
-                                          }
+                                       disabled={
+  (event.name === "LEAP" && user.programme !== "B.Tech") ||
+  event.isRegistered ||
+  event.seatsAvailable === 0
+    ? true
+    : false
+}
                                           
                                     className={`w-full py-3 px-4 rounded-lg font-medium shadow-sm transition-all duration-300 flex items-center justify-center gap-2 group
                                         ${event.isRegistered
