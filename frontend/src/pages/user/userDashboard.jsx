@@ -536,7 +536,12 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                     onClick={() => event.seatsAvailable > 0 && !event.isRegistered ? 
                                         handleRegisterClick(event._id || event.id) : 
                                         null}
-                                    disabled={event.seatsAvailable === 0 || event.isRegistered}
+                                        disabled={
+                                            event.seatsAvailable === 0 ||
+                                            event.isRegistered ||
+                                            (event.name === "LEAP" && user.programme !== "B.Tech")
+                                          }
+                                          
                                     className={`w-full py-3 px-4 rounded-lg font-medium shadow-sm transition-all duration-300 flex items-center justify-center gap-2 group
                                         ${event.isRegistered
                                             ? darkMode
@@ -567,12 +572,16 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                                 />
                                             </svg>
                                         )}
-                                        {event.isRegistered 
-                                            ? 'Registered' 
-                                            : event.seatsAvailable === 0 
-                                                ? 'Registration closed' 
-                                                : 'Register Now'
-                                        }
+                                        {
+  event.name === "LEAP" && user.programme !== "B.Tech"
+    ? "Only open for B.Tech students"
+    : event.isRegistered
+      ? "Registered"
+      : event.seatsAvailable === 0
+        ? "Registration closed"
+        : "Register Now"
+}
+
                                     </span>
                                     {!event.isRegistered && event.seatsAvailable > 0 && (
                                         <svg 
@@ -636,6 +645,8 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                     <em>Please check the box below:</em>
                                 </p>
                             </div>
+
+
                             
                             <div className="mt-2 flex items-start">
                                 <input 
