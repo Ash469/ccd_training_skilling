@@ -61,7 +61,8 @@ const getUserProfile = asyncHandler(async (req, res) => {
       completedEvents: completedEvents.length,
       // Explicitly include all fields to ensure they're included
       studentId: user.rollNumber,
-      joinedDate: user.createdAt
+      joinedDate: user.createdAt,
+      programme: user.programme
     };
     
     // Remove sensitive fields
