@@ -46,6 +46,9 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                 
                 // Map the events and check if they're in user's registered events
                 const eventsWithRegistration = eventsResponse.data.data.map(event => {
+
+                    console.log("events are::::: ", event);
+                    
                     const eventId = event._id || event.id;
                     
                     const isRegistered = registeredEventIds.some(registeredId => {
