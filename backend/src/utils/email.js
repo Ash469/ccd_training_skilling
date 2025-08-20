@@ -105,7 +105,7 @@ exports.sendEventNotificationEmails = async (eventDetails, users) => {
     let errorCount = 0;
     
     // Send emails to each user
-    for (const user of users) {
+    // for (const user of users) {
       try {
         const emailSubject = `New Event: ${eventName}`;
         // const emailText = 
@@ -123,7 +123,7 @@ exports.sendEventNotificationEmails = async (eventDetails, users) => {
         //   `IIT Guwahati`;
 
         const emailText = 
-        `Hello ${user.fullName || 'Student'},\n\n` +
+        `Hello Student,\n\n` +
         `Greetings from the Training and Skilling Team, Center for Career Development (CCD), IIT Guwahati.\n\n` +
         `A new event has been scheduled by Training and Skilling, CCD IIT Guwahati, and is now open for registration. Here are the details. Please visit the portal for more information:\n\n` +
         `Event: ${eventName}\n` +
@@ -158,7 +158,7 @@ exports.sendEventNotificationEmails = async (eventDetails, users) => {
 
         const emailHtml = 
   `<div style="font-family: Aptos, Segoe UI, Arial, sans-serif; line-height: 1.6;">` +
-  `<p>Hello ${user.fullName || 'Student'},</p>` +
+  `<p>Hello Student,</p>` +
   `<p>Greetings from the Training and Skilling Team, Center for Career Development (CCD), IIT Guwahati.</p>` +
   `<p>A new event has been scheduled by Training and Skilling, CCD IIT Guwahati, and is now open for registration. Here are the details:</p>` +
   `<div style="margin: 20px 0; padding: 15px; border-left: 4px solid #6366f1; background-color: #f3f4f6;">` +
@@ -178,7 +178,7 @@ exports.sendEventNotificationEmails = async (eventDetails, users) => {
 
 
         await exports.sendEmail({
-          to: user.email,
+          to: "r.pansuriya@iitg.ac.in",
           subject: emailSubject,
           text: emailText,
           html: emailHtml
