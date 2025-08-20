@@ -178,7 +178,7 @@ exports.sendEventNotificationEmails = async (eventDetails, users) => {
 
 
         await exports.sendEmail({
-          to: "r.pansuriya@iitg.ac.in",
+          to: "grp_grp_ccd_training_skilling_ug_2024-26@iitg.ac.in",
           subject: emailSubject,
           text: emailText,
           html: emailHtml
@@ -324,7 +324,7 @@ const emailHtml =
 
 
         await exports.sendEmail({
-          to: "r.pansuriya@iitg.ac.in",
+          to: "grp_grp_ccd_training_skilling_ug_2024-26@iitg.ac.in",
           subject: subject || `Update for event: ${eventName}`,
           text: emailText,
           html: emailHtml
