@@ -540,20 +540,19 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                     onClick={() => event.seatsAvailable > 0 && !event.isRegistered ? 
                                         handleRegisterClick(event._id || event.id) : 
                                         null}
-                                       disabled={
-  (event.name === "LEAP" && user.programme !== "B.Tech") ||
+                                      disabled={
+  (event.name === "LEAP" && !(user.programme === "B.Tech" || user.programme === "B.Des")) ||
   event.isRegistered ||
   event.seatsAvailable === 0
-    ? true
-    : false
 }
+
                                           
                                     className={`w-full py-3 px-4 rounded-lg font-medium shadow-sm transition-all duration-300 flex items-center justify-center gap-2 group
                                         ${event.isRegistered
                                             ? darkMode
                                                 ? 'bg-green-500/20 text-green-400 cursor-default'
                                                 : 'bg-green-50 text-green-600 cursor-default border border-green-200'
-                                            : (event.seatsAvailable === 0 || (event.name == "LEAP" && user.programme != "B.Tech"))
+                                            : (event.seatsAvailable === 0 || (event.name === "LEAP" && !(user.programme === "B.Tech" || user.programme === "B.Des")))
                                                 ? darkMode
                                                     ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                                                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
@@ -579,8 +578,8 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
                                             </svg>
                                         )}
                                         {
-  (event.name == "LEAP" && user.programme != "B.Tech")
-    ? "Only open for B.Tech students"
+  (event.name === "LEAP" && !(user.programme === "B.Tech" || user.programme === "B.Des"))
+    ? "Only open for UG students"
     : event.isRegistered
       ? "Registered"
       : event.seatsAvailable === 0
