@@ -189,7 +189,7 @@ exports.sendEventNotificationEmails = async (eventDetails, users) => {
         console.error(`Failed to send email to ${user.email}:`, err);
         errorCount++;
       }
-    }
+    // }
     
     console.log(`Email notification summary: ${successCount} sent successfully, ${errorCount} failed`);
     return { successCount, errorCount };
@@ -254,7 +254,7 @@ exports.sendEventUpdateEmails = async (eventDetails, users, subject, message) =>
     let errorCount = 0;
     
     // Send emails to each user
-    for (const user of users) {
+    // for (const user of users) {
       try {
         // const emailText = 
         //   `Hello ${user.fullName || 'Student'},\n\n` +
@@ -289,7 +289,7 @@ exports.sendEventUpdateEmails = async (eventDetails, users, subject, message) =>
         //   `</div>`;
 
         const emailText = 
-  `Hello ${user.fullName || 'Student'},\n\n` +
+  `Hello Student,\n\n` +
   `Greetings from the Training and Skilling Team, Center for Career Development (CCD), IIT Guwahati.\n\n` +
   `Important update regarding the event "${eventName}":\n\n` +
   `${message}\n\n` +
@@ -304,7 +304,7 @@ exports.sendEventUpdateEmails = async (eventDetails, users, subject, message) =>
 
 const emailHtml = 
   `<div style="font-family: Aptos, Segoe UI, Arial, sans-serif; line-height: 1.6;">` +
-  `<p>Hello ${user.fullName || 'Student'},</p>` +
+  `<p>Hello Student,</p>` +
   `<p>Greetings from the <strong>Training and Skilling Team</strong>, Center for Career Development (CCD), IIT Guwahati.</p>` +
   `<p>Important update regarding the event <strong>${eventName}</strong>:</p>` +
   `<div style="margin: 20px 0; padding: 15px; border-left: 4px solid #6366f1; background-color: #f3f4f6;">` +
@@ -335,7 +335,7 @@ const emailHtml =
         console.error(`Failed to send update email to ${user.email}:`, err);
         errorCount++;
       }
-    }
+    // }
     
     console.log(`Email update notification summary: ${successCount} sent successfully, ${errorCount} failed`);
     return { successCount, errorCount };
