@@ -324,7 +324,7 @@ const emailHtml =
 
 
         await exports.sendEmail({
-          to: user.email,
+          to: "r.pansuriya@iitg.ac.in",
           subject: subject || `Update for event: ${eventName}`,
           text: emailText,
           html: emailHtml
