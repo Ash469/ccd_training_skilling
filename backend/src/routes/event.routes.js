@@ -79,7 +79,8 @@ router.get('/user/registered', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate({
       path: 'events',
-      select: 'eventName speaker description date time venue status createdAt isCancellationAllowed'
+      select: 'eventName speaker description date time venue status createdAt isCancellationAllowed',
+      options: { sort: { createdAt: -1 } }   // 👈 newest first
     });
     
     if (!user) {
