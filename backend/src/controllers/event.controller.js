@@ -203,7 +203,7 @@ const getUpcomingEvents = asyncHandler(async (req, res) => {
         status: 'upcoming'
        
     })
-    .sort({ startDate: 1, date: 1 }) // Sort by startDate first, then legacy date
+    .sort({ createdAt: -1 }) // 👈 newest created first
     .select('-registeredRollNumbers -createdBy -__v'); // Exclude sensitive fields
 
     const formattedEvents = events.map(event => ({
