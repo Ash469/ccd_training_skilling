@@ -188,7 +188,7 @@ const createEvent = async (req, res) => {
 
 const getEvents = asyncHandler(async (req, res) => {
     const events = await Event.find({})
-        .sort({ date: 1 }) // Sort by date in ascending order
+         .sort({ createdAt: -1 }) // 👈 newest created first
         .select('-__v'); // Exclude version key
 
     res.status(200).json({
