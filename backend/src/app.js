@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth.routes');
 const eventRoutes = require('./routes/event.routes'); 
 const userRoutes = require('./routes/user.routes');
 const sendEmailRoutes = require('./routes/sendEmail.routes');
+const panelRoutes = require('./routes/panel.routes');
 
 
 
@@ -43,6 +44,7 @@ app.use('/api', authRoutes);
 app.use('/api/events', eventRoutes); 
 app.use('/api/users', userRoutes);
 app.use('/api/email', sendEmailRoutes);
+app.use('/api/panels', panelRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
