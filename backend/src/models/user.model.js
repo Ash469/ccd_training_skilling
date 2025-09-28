@@ -60,13 +60,21 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Event'
   }],
-  canRegisterAgain: { 
+  status: { 
     type: Boolean, default: true 
   },
   registeredPanelSlot: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Panel.slots' 
-  }
+  },
+  registeredPanel: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Panel'
+  },
+  isTnSStudent: { 
+    type: Boolean, 
+    default: true
+  },
 }, {
   timestamps: true
 });

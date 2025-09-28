@@ -344,3 +344,67 @@ const emailHtml =
     throw new Error(`Failed to send update notification emails: ${error.message}`);
   }
 };
+
+/**
+ * Send slot notification emails to registered students
+ * @param {Object} panelDetails - Panel info (name, description, capacity)
+ * @param {Array} users - List of users with email + fullName
+ * @returns {Promise}
+ */
+exports.sendPanelNotificationEmails = async (panelDetails, users) => {
+  try {
+    console.log(`Preparing to send slot notifications to ${users.length} users`);
+
+    const { name } = panelDetails;
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const user of users) {
+      try {
+        const emailSubject = `New Slots Added in Panel: ${name}`;
+
+        const emailText =
+          `Hello ${user.fullName || 'Student'},\n\n` +
+          `Greetings from the Training and Skilling Team, Center for Career Development (CCD), IIT Guwahati.\n\n` +
+          `New slots have been added to your registered panel: ${name}\n\n` +
+          `Please visit the Training and Skilling Portal for more information and to book your slot.\n\n` +
+          `Best Regards,\n` +
+          `Training and Skilling Team CCD\n` +
+          `IIT Guwahati`;
+
+        const emailHtml =
+          `<div style="font-family: Aptos, Segoe UI, Arial, sans-serif; line-height: 1.6;">` +
+          `<p>Hello ${user.fullName || 'Student'},</p>` +
+          `<p>Greetings from the Training and Skilling Team, Center for Career Development (CCD), IIT Guwahati.</p>` +
+          `<p>New slots have been added to your registered panel: <strong>${name}</strong></p>` +
+          `<p>Please visit the <a href="https://ccd-training-skilling.vercel.app/" style="color: #6366f1; text-decoration: none;">Training and Skilling Portal</a> for more information and to book your slot.</p>` +
+          `<p>Best Regards,<br>` +
+          `Training and Skilling Team CCD<br>` +
+          `IIT Guwahati</p>` +
+          `</div>`;
+
+        await exports.sendEmail({
+          to: user.email,
+          subject: emailSubject,
+          text: emailText,
+          html: emailHtml
+        });
+
+        successCount++;
+      } catch (err) {
+        console.error(`Failed to send slot email to ${user.email}:`, err);
+        errorCount++;
+      }
+    }
+
+    console.log(`Slot notification summary: ${successCount} sent successfully, ${errorCount} failed`);
+    return { 
+      successCount, 
+      errorCount, 
+    };
+  } catch (error) {
+    console.error('Failed to send slot notification emails:', error);
+    throw new Error(`Failed to send slot notification emails: ${error.message}`);
+  }
+};

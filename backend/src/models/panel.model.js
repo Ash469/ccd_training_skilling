@@ -1,34 +1,47 @@
 const mongoose = require('mongoose');
 
 const slotSchema = new mongoose.Schema({
-    date: { 
-        type: Date, 
-        required: true 
+    date: {
+        type: Date,
+        required: true
     },
-    startTime: { 
-        type: String, 
-        required: true 
-    }, 
-    endTime: { 
-        type: String, 
-        required: true 
+    startTime: {
+        type: String,
+        required: true
     },
-    capacity: { 
-        type: Number, 
-        required: true, 
-        min: 1 
+    endTime: {
+        type: String,
+        required: true
     },
-    registeredStudents: [{ 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User' 
-    }]
-});
+    isBooked: {
+        type: Boolean,
+        default: false
+    },
+    students: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        },
+    ],
+}, { _id: true });
 
 const panelSchema = new mongoose.Schema({
-    name: { 
-        type: String, 
-        required: true 
+    name: {
+        type: String,
+        required: true
     },
+    description: {
+        type: String
+    },
+    capacity: {
+        type: Number,
+        required: true,
+        min: 1
+    },
+    registeredStudents: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     slots: [slotSchema]
 });
 

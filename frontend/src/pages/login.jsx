@@ -145,7 +145,7 @@ export default function Login({ darkMode }) {
             if (!userData.isProfileComplete) {
               navigate('/user/complete-profile');
             } else {
-              navigate('/user/dashboard');
+              navigate('/user/panel-registration');
             }
           }
         }, 100);
@@ -231,7 +231,7 @@ export default function Login({ darkMode }) {
             if (!isProfileComplete) {
               navigate('/user/complete-profile');
             } else {
-              navigate('/user/dashboard');
+              navigate('/user/panel-registration');
             }
           }
         }

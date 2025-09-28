@@ -228,7 +228,12 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 // @route   GET /api/users
 // @access  Private/Admin
 const getAllUsers = asyncHandler(async (req, res) => {
-  // ...existing code...
+  try {
+    const users = await User.find({}, 'fullName email _id');
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // @desc    Get user by ID
