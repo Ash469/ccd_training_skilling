@@ -10,13 +10,21 @@ const upload = multer({
     fileSize: 1024 * 1024 * 5 // limit file size to 5MB
   },
   fileFilter: function (req, file, cb) {
-    // Accept only csv files
-    if (file.mimetype === 'text/csv' || 
-        file.mimetype === 'application/vnd.ms-excel' || 
-        file.originalname.endsWith('.csv')) {
+    const allowedTypes = [
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+
+    if (
+      allowedTypes.includes(file.mimetype) ||
+      file.originalname.endsWith('.csv') ||
+      file.originalname.endsWith('.xls') ||
+      file.originalname.endsWith('.xlsx')
+    ) {
       cb(null, true);
     } else {
-      cb(new Error('Only CSV files are allowed'), false);
+      cb(new Error('Only CSV or Excel files are allowed'), false);
     }
   }
 });

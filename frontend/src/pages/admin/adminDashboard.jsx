@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {faEdit,faTrash,faSun,faMoon,faCalendar,faClock,faUser,faLocationDot,faUsers,faPlus,faBars,faTimes,faBell} from '@fortawesome/free-solid-svg-icons';
 import ErrorFallback from '../../components/ErrorFallback';
 import Footer from '../../components/footer';
+import AdminNavbar from './adminNavbar';
 
 export default function AdminDashboard({ darkMode, toggleDarkMode }) {
     const navigate = useNavigate();
@@ -295,157 +296,9 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
     return (
         <div className={`min-h-screen transition-colors duration-200 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50'
             }`}>
-            <nav className={`shadow-sm p-4 transition-colors duration-200 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'
-                }`}>
-                <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <div className="flex items-center">
-                        <img 
-                            src="/logo.png" 
-                            alt="CCD Logo" 
-                            className="h-12 w-auto mr-3" 
-                        />
-                        <h1 className={`text-xl font-semibold ${
-                            darkMode ? 'text-purple-400' : 'text-purple-600'
-                        }`}>
-                            Admin Dashboard
-                        </h1>
-                    </div>
-                    
-                    {/* Mobile menu button */}
-                    <button 
-                        className="md:hidden p-2 rounded-md"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    >
-                        {mobileMenuOpen ? (
-                            <FontAwesomeIcon 
-                                icon={faTimes} 
-                                className={darkMode ? 'text-white' : 'text-gray-800'} 
-                            />
-                        ) : (
-                            <FontAwesomeIcon 
-                                icon={faBars} 
-                                className={darkMode ? 'text-white' : 'text-gray-800'} 
-                            />
-                        )}
-                    </button>
-                    
-                    {/* Desktop menu */}
-                    <div className="hidden md:flex items-center gap-4">
-                        <button
-                            onClick={() => navigate('/admin/student-analytics')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${darkMode
-                                    ? 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20'
-                                    : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
-                                }`}
-                        >
-                            Student Analytics
-                        </button>
-                        <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
-                            Welcome Admin
-                        </span>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium ${darkMode ? 'bg-purple-600' : 'bg-purple-700'
-                            }`}>
-                            A
-                        </div>
-                        <button
-                            onClick={toggleDarkMode}
-                            className={`p-2 rounded-full transition-all duration-200 ${darkMode
-                                    ? 'hover:bg-gray-700 text-yellow-400 hover:text-yellow-300'
-                                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-                                }`}
-                        >
-                            {darkMode ? (
-                                <FontAwesomeIcon 
-                                    icon={faSun} 
-                                    className="h-5 w-5 transform hover:rotate-45 transition-transform duration-200" 
-                                />
-                            ) : (
-                                <FontAwesomeIcon 
-                                    icon={faMoon} 
-                                    className="h-5 w-5 transform hover:-rotate-12 transition-transform duration-200" 
-                                />
-                            )}
-                        </button>
-                        <button
-                            onClick={() => navigate('/')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${darkMode
-                                    ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
-                                    : 'bg-red-50 text-red-600 hover:bg-red-100'
-                                }`}
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </div>
-                
-                {/* Mobile menu */}
-                {mobileMenuOpen && (
-                    <div className={`md:hidden mt-4 py-3 px-2 rounded-lg shadow-lg ${
-                        darkMode ? 'bg-gray-700' : 'bg-white'
-                    }`}>
-                        <div className="flex flex-col space-y-3">
-                            <div className="flex items-center justify-between px-2 mb-2">
-                                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
-                                    Welcome Admin
-                                </span>
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium ${
-                                    darkMode ? 'bg-purple-600' : 'bg-purple-700'
-                                }`}>
-                                    A
-                                </div>
-                            </div>
-                            
-                            <button
-                                onClick={() => navigate('/admin/create-event')}
-                                className={`w-full py-2 text-center rounded ${
-                                    darkMode ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-800'
-                                }`}
-                            >
-                                Create Event
-                            </button>
-                            
-                            <button
-                                onClick={() => navigate('/admin/student-analytics')}
-                                className={`w-full py-2 text-center rounded ${
-                                    darkMode ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-800'
-                                }`}
-                            >
-                                Student Analytics
-                            </button>
-                            
-                            <button
-                                onClick={toggleDarkMode}
-                                className={`w-full py-2 text-center rounded flex items-center justify-center space-x-2 ${
-                                    darkMode ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-800'
-                                }`}
-                            >
-                                {darkMode ? (
-                                    <>
-                                        <FontAwesomeIcon icon={faSun} className="h-4 w-4" />
-                                        <span>Light Mode</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <FontAwesomeIcon icon={faMoon} className="h-4 w-4" />
-                                        <span>Dark Mode</span>
-                                    </>
-                                )}
-                            </button>
-                            
-                            <button
-                                onClick={() => navigate('/')}
-                                className={`w-full py-2 text-center rounded-lg font-medium ${
-                                    darkMode 
-                                        ? 'bg-red-500/20 text-red-400' 
-                                        : 'bg-red-50 text-red-600'
-                                }`}
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </nav>
+            <AdminNavbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+
+            
 
             <div className="max-w-7xl mx-auto p-6 pb-12">
                 <div className="flex items-center justify-between mb-6">
