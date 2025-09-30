@@ -86,12 +86,18 @@ npm install
 3. **Environment Setup**
 ```bash
 # Frontend (.env)
-VITE_BACKEND_URL=http://localhost:5001
+VITE_BACKEND_URL=
+VITE_MICROSOFT_CLIENT_ID=
+VITE_MICROSOFT_TENANT_ID=
+VITE_REDIRECT_URI=
 
 # Backend (.env)
-PORT=5001
-MONGO_URI=your_mongodb_uri
-JWT_SECRET=your_jwt_secret
+PORT=
+MONGO_URI=
+JWT_SECRET=
+OUTLOOK_EMAIL=  
+OUTLOOK_PASSWORD=
+FRONTEND_URL=
 ```
 
 4. **Start the application**
@@ -116,7 +122,21 @@ cd ccd_training_skilling
 ```
 
 2. **Create environment files**
-Make sure you have `.env` inside both `frontend/` and `backend/` as shown above.
+Create a  `.env` in the root of the project.
+```bash
+# === Frontend Build-Time Variables ===
+VITE_BACKEND_URL=
+VITE_MICROSOFT_CLIENT_ID=
+VITE_MICROSOFT_TENANT_ID=
+VITE_REDIRECT_URI=
+# === Backend Run-Time Variables ===
+PORT=5001
+MONGO_URI=
+JWT_SECRET=
+OUTLOOK_EMAIL=  
+OUTLOOK_PASSWORD=
+FRONTEND_URL=
+```
 
 3. **Docker Compose Configuration**
 Create a `docker-compose.yml` in the root directory:
@@ -124,36 +144,28 @@ Create a `docker-compose.yml` in the root directory:
 ```yaml
 version: "3.9"
 services:
-  backend:
-    build: ./backend
-    container_name: backend
+  app:
+    build:
+      context: .
+      args:
+        VITE_BACKEND_URL: ${VITE_BACKEND_URL}
+        VITE_MICROSOFT_CLIENT_ID: ${VITE_MICROSOFT_CLIENT_ID}
+        VITE_MICROSOFT_TENANT_ID: ${VITE_MICROSOFT_TENANT_ID}
+        VITE_REDIRECT_URI: ${VITE_REDIRECT_URI}
+    container_name: ccd-app
     ports:
       - "5001:5001"
     env_file:
-      - ./backend/.env
+      - .env
     volumes:
-      - ./backend/uploads/pdfs:/app/uploads/pdfs
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: ./frontend
-      args:
-        VITE_BACKEND_URL: http://localhost:5001
-        VITE_MICROSOFT_CLIENT_ID: your_client_id
-        VITE_MICROSOFT_TENANT_ID: your_tenant_id
-        VITE_REDIRECT_URI: http://localhost:3000/user/dashboard
-    container_name: frontend
-    ports:
-      - "3000:80"
-    depends_on:
-      - backend
+      - ./backend/uploads/pdfs:/app/backend/uploads/pdfs
     restart: unless-stopped
 ```
 
 4. **Build and start containers**
 ```bash
-docker compose up --build -d
+docker-compose build --no-cache
+docker-compose up -d
 ```
 
 5. **Check running containers**
@@ -163,22 +175,13 @@ docker ps
 
 6. **Access the application**
 - Backend: http://localhost:5001
-- Frontend: http://localhost:3000
+- Frontend: http://localhost:5001
+- We had make a single container for both frontend and backend
 
 7. **Stop containers**
 ```bash
-docker compose down
+docker-compose down
 ```
-
-
-## 👥 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
 
 ## 🙏 Acknowledgments
 
