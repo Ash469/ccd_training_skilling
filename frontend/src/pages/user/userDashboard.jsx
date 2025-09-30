@@ -34,7 +34,7 @@ export default function UserDashboard({ darkMode, toggleDarkMode }) {
   const [isConfirmed, setIsConfirmed] = useState(false);
 
   const API_BASE_URL =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+    import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
   useEffect(() => {
     const fetchData = async () => {
       try {

@@ -86,10 +86,10 @@ npm install
 3. **Environment Setup**
 ```bash
 # Frontend (.env)
-VITE_BACKEND_URL=http://localhost:5000
+VITE_BACKEND_URL=http://localhost:5001
 
 # Backend (.env)
-PORT=5000
+PORT=5001
 MONGO_URI=your_mongodb_uri
 JWT_SECRET=your_jwt_secret
 ```
@@ -128,7 +128,7 @@ services:
     build: ./backend
     container_name: backend
     ports:
-      - "5000:5000"
+      - "5001:5001"
     env_file:
       - ./backend/.env
     volumes:
@@ -139,7 +139,7 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_BACKEND_URL: http://localhost:5000
+        VITE_BACKEND_URL: http://localhost:5001
         VITE_MICROSOFT_CLIENT_ID: your_client_id
         VITE_MICROSOFT_TENANT_ID: your_tenant_id
         VITE_REDIRECT_URI: http://localhost:3000/user/dashboard
@@ -162,7 +162,7 @@ docker ps
 ```
 
 6. **Access the application**
-- Backend: http://localhost:5000
+- Backend: http://localhost:5001
 - Frontend: http://localhost:3000
 
 7. **Stop containers**

@@ -32,7 +32,7 @@ export default function StudentAnalytics({ darkMode, toggleDarkMode }) {
   const [studentDetails, setStudentDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
   useEffect(() => {
     fetchStudents();

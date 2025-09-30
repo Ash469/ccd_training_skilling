@@ -13,7 +13,7 @@ export default function PanelRegistration({ darkMode }) {
   const [user, setUser] = useState(null);
 
   const API_BASE_URL =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+    import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");

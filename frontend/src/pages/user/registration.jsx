@@ -11,7 +11,7 @@ export default function Registration({ darkMode, toggleDarkMode }) {
   const [error, setError] = useState(null);
   const [cancelStatus, setCancelStatus] = useState({ show: false, message: '', type: '' });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
   useEffect(() => {
     const fetchUserEvents = async () => {

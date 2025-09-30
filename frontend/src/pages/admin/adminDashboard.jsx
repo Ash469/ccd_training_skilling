@@ -27,7 +27,7 @@ export default function AdminDashboard({ darkMode, toggleDarkMode }) {
     const [notificationStatus, setNotificationStatus] = useState(null);
     const [selectedEventForNotification, setSelectedEventForNotification] = useState(null);
     
-    const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
     
     useEffect(() => {
         const fetchEvents = async () => {

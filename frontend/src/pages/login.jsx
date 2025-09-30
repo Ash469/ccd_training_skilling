@@ -16,7 +16,7 @@ export default function Login({ darkMode }) {
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [loginMethod, setLoginMethod] = useState('microsoft'); // 'microsoft' or 'password'
   
-  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
   useEffect(() => {
     // Initialize MSAL instance

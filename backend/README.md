@@ -144,7 +144,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 
 // Start the server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
@@ -174,7 +174,7 @@ JWT_SECRET=your_jwt_secret
 
 You can use tools like Postman or curl to test the registration endpoint:
 
-- **Endpoint:** `POST http://localhost:5000/api/auth/register`
+- **Endpoint:** `POST http://localhost:5001/api/auth/register`
 - **Body (JSON):**
 ```json
 {

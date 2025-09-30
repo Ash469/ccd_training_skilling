@@ -28,7 +28,7 @@ export default function CreateEvent({ darkMode, toggleDarkMode }) {
   const [venue, setVenue] = useState('');
   const [maxSeats, setMaxSeats] = useState('');
 
-  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
   // Calculate minimum date for date input (today)
   const today = new Date();

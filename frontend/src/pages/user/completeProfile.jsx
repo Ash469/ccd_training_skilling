@@ -19,7 +19,7 @@ export default function CompleteProfile({ darkMode, toggleDarkMode }) {
   const [error, setError] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
   useEffect(() => {
     const fetchUserData = async () => {

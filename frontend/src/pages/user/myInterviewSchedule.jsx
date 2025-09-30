@@ -8,7 +8,7 @@ export default function MyInterviewSchedule({ darkMode, user }) {
   const [notification, setNotification] = useState({ message: "", type: "" });
 
   const API_BASE_URL =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+    import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
 
   useEffect(() => {
     const fetchSchedule = async () => {

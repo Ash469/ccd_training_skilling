@@ -35,7 +35,7 @@ export default function PanelManagement({ darkMode }) {
   const [slotfile, setSlotFile] = useState(null);
 
   const API_BASE_URL =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+    import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
   const token = localStorage.getItem("token");
   const config = { headers: { Authorization: `Bearer ${token}` } };
 

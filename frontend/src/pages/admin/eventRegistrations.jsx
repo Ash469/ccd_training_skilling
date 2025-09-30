@@ -20,7 +20,7 @@ export default function EventRegistrations({ darkMode }) {
     const [attendanceRecorded, setAttendanceRecorded] = useState(false);
     const [attendanceDate, setAttendanceDate] = useState(null);
 
-    const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
     const fetchAttendanceData = useCallback(async () => {
         try {
@@ -60,7 +60,7 @@ export default function EventRegistrations({ darkMode }) {
             let errorMsg = 'Failed to fetch attendance data. Please try again later.';
             
             if (API_BASE_URL.includes('localhost')) {
-                errorMsg = 'Could not connect to local server. Make sure your backend is running on port 5000.';
+                errorMsg = 'Could not connect to local server. Make sure your backend is running on port 5001.';
             }
             
             setError(errorMsg);
@@ -106,7 +106,7 @@ export default function EventRegistrations({ darkMode }) {
             let errorMsg = 'Failed to fetch registrations. Please try again later.';
             
             if (API_BASE_URL.includes('localhost')) {
-                errorMsg = 'Could not connect to local server. Make sure your backend is running on port 5000.';
+                errorMsg = 'Could not connect to local server. Make sure your backend is running on port 5001.';
             }
             
             setError(errorMsg);

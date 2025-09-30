@@ -14,7 +14,7 @@ export default function Register({ darkMode }) {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
