@@ -59,7 +59,8 @@ const getUserProfile = asyncHandler(async (req, res) => {
       registeredEvents: registeredEvents.length,
       studentId: user.rollNumber,
       joinedDate: user.createdAt,
-      programme: user.programme
+      programme: user.programme,
+      isTnSStudent: user.isTnSStudent
     };
     
     // Remove sensitive fields
