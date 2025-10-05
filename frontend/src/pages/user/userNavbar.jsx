@@ -26,7 +26,7 @@ export default function UserNavbar({ darkMode, toggleDarkMode, user }) {
   };
 
 // If user.isTnSStudent is undefined or null, default to true
-const isTnSStudent = user?.isTnSStudent ?? true;
+const isTnSStudent = user?.isTnSStudent;
 
 
   return (
