@@ -25,10 +25,10 @@ export default function UserNavbar({ darkMode, toggleDarkMode, user }) {
     navigate(path);
   };
 
-// If user.isTnSStudent is undefined or null, default to true
-const isTnSStudent = user?.isTnSStudent;
+const isTnSStudent = user?.isTnSStudent; // default to true if undefined or null
 
-
+console.log("🚨VALUE OF const variable is:", isTnSStudent, "🚨");
+  
   return (
     <nav
       className={`shadow-sm p-4 transition-colors duration-200 ${
