@@ -25,8 +25,9 @@ export default function UserNavbar({ darkMode, toggleDarkMode, user }) {
     navigate(path);
   };
 
-  // Check if user is a T&S student
-  const isTnSStudent = user?.isTnSStudent;
+// If user.isTnSStudent is undefined or null, default to true
+const isTnSStudent = user?.isTnSStudent ?? true;
+
 
   return (
     <nav
