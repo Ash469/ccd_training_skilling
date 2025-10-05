@@ -73,7 +73,7 @@ const userSchema = new mongoose.Schema({
   },
   isTnSStudent: { 
     type: Boolean, 
-    default: true
+    default: false
   },
 }, {
   timestamps: true
