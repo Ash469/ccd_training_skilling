@@ -136,7 +136,8 @@ const getUserProfileById = asyncHandler(async (req, res) => {
       registeredEvents: registeredEvents.length,
       upcomingEvents: upcomingEvents.length,
       completedEvents: completedEvents.length,
-      joinedDate: user.createdAt
+      joinedDate: user.createdAt,
+      isTnSStudent: user.isTnSStudent
     };
     
     // Return complete profile with all fields
