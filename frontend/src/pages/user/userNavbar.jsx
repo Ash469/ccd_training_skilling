@@ -62,7 +62,7 @@ const isTnSStudent = user?.isTnSStudent;
         {/* Desktop menu */}
         <div className="hidden md:flex items-center gap-4"> 
           {/* Events Dropdown - Only show for T&S students */} 
-          {isTnSStudent !== false && ( 
+          {(isTnSStudent === true || isTnSStudent === undefined) && ( 
             <div className="relative">
               <button
                 onClick={() => setEventsDropdown((v) => !v)}
