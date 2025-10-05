@@ -60,9 +60,9 @@ const isTnSStudent = user?.isTnSStudent ?? true;
         </button>
 
         {/* Desktop menu */}
-        <div className="hidden md:flex items-center gap-4">
-          {/* Events Dropdown - Only show for T&S students */}
-          {isTnSStudent && (
+        <div className="hidden md:flex items-center gap-4"> 
+          {/* Events Dropdown - Only show for T&S students */} 
+          {isTnSStudent !== false && ( 
             <div className="relative">
               <button
                 onClick={() => setEventsDropdown((v) => !v)}
